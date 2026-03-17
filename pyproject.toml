@@ -1,18 +1,18 @@
 # PROJECT ----------------------------------------------------------------------
 [project]
-name = "cli-app"
-version = "0.4.1"
+name = "lib"
+version = "0.1.0"
 description = "Add your description here"
 authors = [
     { name = "Igor Lashkov", email = "rwrotson@yandex.ru" },
 ]
 maintainers = []
 keywords = [
+    "python",
+    "library",
     "template",
     "example",
-    "typer",
     "structlog",
-    "pydantic-settings",
     "uv",
     "pytest",
     "ruff",
@@ -26,24 +26,29 @@ classifiers = [
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3.13",
 ]
+license = { text = "MIT" }
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "pydantic-settings>=2.13.1",
+    "pydantic-settings>=2.0",
     "structlog>=25.5.0",
-    "typer>=0.24.1",
 ]
+
+[project.urls]
+Repository = "https://github.com/rwrotson/python-lib-template"
+Documentation = "https://rwrotson.github.io/python-lib-template"
+Changelog = "https://github.com/rwrotson/python-lib-template/blob/main/CHANGELOG.md"
 
 [dependency-groups]
 dev = [
     "commitizen>=4.13.9",
-    "emojis>=0.7.0",
     "mypy>=1.19.1",
     "pre-commit>=4.5.1",
     "pytest>=9.0.2",
     "pytest-cov>=7.0.0",
     "pytest-mock>=3.15.1",
-    "pytest-xdist>=3.8.0",
+    "pytest-timeout>=0.5",
+    "pytest-xdist>=3.0",
     "ruff>=0.15.6",
     "taskipy>=1.14.1",
 ]
@@ -55,10 +60,6 @@ docs = [
     "mkdocstrings[python]>=1.0.3",
 ]
 
-[project.scripts]
-cli-app = "cli_app.main:main"
-
-
 
 # BUILD BACKEND ----------------------------------------------------------------
 [build-system]
@@ -66,17 +67,17 @@ requires = ["uv_build>=0.10.10"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]
-module-name = "cli_app"
+module-name = "lib"
 module-root = "src"
 
 
 # PYTEST -----------------------------------------------------------------------
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--maxfail=3 --tb=short --cov --cov-report=term-missing -n auto"
+addopts = "--maxfail=3 --tb=short --cov --cov-report=term-missing -n auto --timeout=30"
 
 [tool.coverage.run]
-source = ["cli_app"]
+source = ["lib"]
 omit = ["*/__init__.py"]
 parallel = true
 concurrency = ["multiprocessing"]
@@ -90,9 +91,7 @@ fail_under = 80
 # MYPY -------------------------------------------------------------------------
 [tool.mypy]
 mypy_path = "src"
-explicit_package_bases = true
 files = ["src", "tests"]
-exclude_gitignore = true
 python_version = "3.13"
 disallow_untyped_defs = true
 disallow_any_unimported = true
@@ -142,6 +141,7 @@ exclude = [
     "site-packages",
     "venv",
     "migrations",
+    "examples",
 ]
 line-length = 100
 indent-width = 4
@@ -227,7 +227,7 @@ unfixable = []
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"  # Allow unused variables when underscore-prefixed.
 
 [tool.ruff.lint.isort]
-known-local-folder = ["cli_app"]
+known-local-folder = ["lib"]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -252,7 +252,7 @@ major_version_zero = true
 [tool.taskipy.tasks]
 lint = "ruff check ."
 fmt = "ruff format ."
-typecheck = "mypy src/"
+typecheck = "mypy src/lib tests/"
 test = "pytest"
 test-fast = "pytest --no-cov -n auto"
-audit = "pip-audit"
+audit = "uv run --with pip-audit pip-audit"

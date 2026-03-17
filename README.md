@@ -1,11 +1,9 @@
-# typer-template
+# python-lib-template
 
-A template for building Python CLI applications with [Typer](https://typer.tiangolo.com/), featuring Rich output, structured logging via structlog, and environment-based configuration.
+A template for building Python libraries with structured logging, environment-based configuration, and a modern toolchain.
 
 ## Stack
 
-- **[Typer](https://typer.tiangolo.com/)** — CLI framework
-- **[Rich](https://rich.readthedocs.io/)** — terminal output and progress bars
 - **[structlog](https://www.structlog.org/)** — structured logging with context binding; dev console output or JSON for aggregators
 - **[Pydantic Settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/)** — environment-based configuration
 - **[uv](https://docs.astral.sh/uv/)** — package management
@@ -25,9 +23,6 @@ A template for building Python CLI applications with [Typer](https://typer.tiang
 ```bash
 # Clone the repo and install dependencies
 uv sync --all-extras
-
-# Run the CLI
-uv run cli-app --help
 
 # Install pre-commit hooks (enforces Conventional Commits)
 uv run pre-commit install
@@ -63,38 +58,6 @@ uv run --group docs mkdocs gh-deploy  # deploy to GitHub Pages (gh-pages branch)
 
 Source is in `docs/`. Powered by [MkDocs Material](https://squidfunk.github.io/mkdocs-material/) with `mkdocstrings` for API reference generation.
 
-## Global CLI Flags
-
-The root app exposes flags available to every subcommand:
-
-| Flag | Short | Default | Effect |
-|------|-------|---------|--------|
-| `--verbose` | `-V` | off | Sets log level to DEBUG at runtime |
-| `--output-format` | `-f` | `text` | `text` (Rich) or `json` (machine-readable) |
-| `--version` | `-v` | — | Print version and dependency list, then exit |
-| `--authors` | `-A` | — | Print author contacts, then exit |
-
-```bash
-cli-app --verbose command example-command hello
-cli-app --output-format json command example-command hello
-echo "hello" | cli-app command example-command   # stdin piping
-```
-
-## Shell Completion
-
-```bash
-cli-app completion install           # install for the current shell
-cli-app completion install --shell zsh
-cli-app completion show              # print the completion script
-```
-
-Or directly via the built-in Typer flags:
-
-```bash
-cli-app --install-completion
-cli-app --show-completion
-```
-
 ## Versioning & Changelog
 
 This template uses [Conventional Commits](https://www.conventionalcommits.org/) enforced by a `commit-msg` pre-commit hook.
@@ -111,42 +74,30 @@ Bump type is inferred automatically: `fix:` → patch, `feat:` → minor, `feat!
 
 ## Configuration
 
-Console and logging behaviour can be configured via environment variables or a `.env` file:
+Logging behaviour can be configured via environment variables or a `.env` file:
 
 | Prefix | Controls |
 |--------|----------|
-| `CLI_APP_CONSOLE_*` | Rich console settings (theme, colors, width) |
-| `CLI_APP_LOG_*` | Log level, file rotation, JSON output |
+| `LIB_LOG_*` | Log level, file rotation, JSON output |
 
 ```env
-CLI_APP_LOG_LEVEL=DEBUG
-CLI_APP_LOG_USE_JSON_FORMATTER=true   # emit JSON logs (for Datadog, Loki, etc.)
-CLI_APP_CONSOLE_WIDTH=120
+LIB_LOG_LEVEL=DEBUG
+LIB_LOG_USE_JSON_FORMATTER=true   # emit JSON logs (for Datadog, Loki, etc.)
 ```
 
 ## Project Structure
 
 ```
 src/
-└── cli_app/
-    ├── main.py              # entry point
-    ├── cli/
-    │   ├── app.py           # root Typer app (--verbose, --output-format, --version, --authors)
-    │   ├── callbacks/       # eager option callbacks (--version, --authors)
-    │   └── commands/
-    │       ├── command.py   # example command group (stdin + output-format patterns)
-    │       └── completion.py # shell completion sub-app
-    ├── core/                # domain logic + Settings
+└── lib/                     # rename to your package name
+    ├── utils/
+    │   ├── log.py           # structlog setup (ConsoleRenderer dev / JSON prod)
+    │   └── misc.py          # find_project_root()
+    └── pkg/                 # placeholder for your domain modules
+tests/
     └── utils/
-        ├── console.py       # singleton Rich Console
-        ├── log.py           # structlog setup (ConsoleRenderer dev / JSON prod)
-        ├── output.py        # OutputFormat enum, render_output(), echo_json()
-        ├── stdin.py         # is_stdin_piped(), read_stdin_if_piped(), iter_stdin_lines()
-        ├── meta.py          # distribution metadata at runtime
-        ├── format.py        # Rich Theme
-        ├── emoji.py         # Emoji StrEnum
-        ├── progress.py      # Rich Progress bar factory
-        └── misc.py          # find_project_root()
+        ├── test_log.py
+        └── test_misc.py
 ```
 
 ## CI/CD

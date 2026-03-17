@@ -2,142 +2,56 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Overview
-
-A template for building Python CLI apps using [Typer](https://typer.tiangolo.com/) with Rich output, structlog-based structured logging, and Pydantic Settings-based configuration.
-
-Distribution name: `cli-app` | Python package: `cli_app` | Entry point: `cli-app`
-
 ## Commands
 
-This project uses [uv](https://docs.astral.sh/uv/) for package management.
+All tasks run via [taskipy](https://github.com/taskipy/taskipy):
 
 ```bash
-# Install dependencies
-uv sync --all-extras
-
-# Run the CLI
-uv run cli-app
-
-# Tasks via taskipy (uv run task <name>)
 uv run task lint        # ruff check .
 uv run task fmt         # ruff format .
 uv run task typecheck   # mypy src/
 uv run task test        # pytest (parallel, 80% coverage enforced)
 uv run task test-fast   # pytest --no-cov -n auto
-uv run task audit       # pip-audit
-
-# Or run tools directly
-uv run ruff check .
-uv run ruff format .
-uv run mypy src/
-uv run pytest
-uv run pytest --no-cov
-
-# Install pre-commit hooks
-uv run pre-commit install
-
-# Run pre-commit on all files
-uv run pre-commit run --all-files
-
-# Versioning
-uv run cz bump           # bump version, update CHANGELOG, tag
-uv run cz changelog      # update CHANGELOG only
-
-# Serve docs locally (live reload)
-uv run --group docs mkdocs serve
-
-# Build static docs site
-uv run --group docs mkdocs build
-
-# Deploy to GitHub Pages (gh-pages branch)
-uv run --group docs mkdocs gh-deploy
+uv run task audit       # pip-audit dependency audit
 ```
 
-## CI/CD
+Run a single test file:
 
-`.github/workflows/ci.yml` triggers on push/PR to `main` and `dev`. One job:
+```bash
+uv run pytest tests/path/to/test.py
+```
 
-- **`ci`** — ruff format check → ruff lint → mypy → pytest → pip-audit → trivy (CRITICAL/HIGH CVE scan).
+Serve the docs locally:
 
-`.github/workflows/release.yml` triggers on version tags (`v*`). Two jobs:
-
-- **`publish`** — `uv build` + `pypa/gh-action-pypi-publish` with OIDC (no `password` → keyless). Permissions: `id-token: write`, `contents: read`.
-- **`docs`** — `mkdocs gh-deploy --force` with `fetch-depth: 0`. Permissions: `contents: write`.
-
-Dependabot opens weekly PRs for pip packages and GitHub Actions (`.github/dependabot.yml`).
-
-PyPI trusted publisher must be configured on PyPI with workflow file `release.yml` and no environment.
+```bash
+uv run --group docs mkdocs serve
+```
 
 ## Architecture
 
-### Package Layout & Build
-
-Source lives in `src/cli_app/` — the standard `src/` layout. The uv build backend is configured in `pyproject.toml`:
-
-```toml
-[tool.uv.build-backend]
-module-name = "cli_app"
-module-root = "src"
+```
+src/lib/               # library package — rename to your package name
+    utils/
+        log.py         # structlog setup bridged through stdlib; LIB_LOG_* env vars
+        misc.py        # find_project_root() utility
+    pkg/               # placeholder for your domain modules
+tests/
+    utils/
+        test_log.py
+        test_misc.py
 ```
 
-All internal imports are **absolute**, using the `cli_app.` prefix:
+- **Logging** (`utils/log.py`): `LogConfig` reads settings from `LIB_LOG_*` environment variables (Pydantic Settings). Call `setup_logging()` once at startup. Structlog is wired through stdlib so third-party loggers share the same handler chain.
+- **`find_project_root()`** (`utils/misc.py`): walks up from the module's directory until it finds a directory containing `pyproject.toml` (or a custom marker).
+- **Tests**: pytest with 80% coverage enforcement, parallelised via pytest-xdist (`-n auto`).
+- **Env config**: prefix `LIB_LOG_*`; reads `.env` file automatically.
 
-```python
-from cli_app.cli.app import app
-from cli_app.utils.console import get_console
-```
+## Renaming the Template
 
-### Entry Point & Startup
+To rename `lib` to your package name:
 
-`src/cli_app/main.py` is minimal: calls `setup_logging()`, `get_console()`, then `app()`. The console script entry point is `cli_app.main:main`.
-
-### CLI Structure
-
-```
-src/cli_app/cli/app.py          — Root Typer app; registers subcommand groups and global options
-src/cli_app/cli/callbacks/      — Eager option callbacks that print metadata and exit
-src/cli_app/cli/commands/       — Subcommand groups; each file creates its own Typer sub-app
-```
-
-The root callback (`app.py`) sets two values in `ctx.obj` before any subcommand runs:
-
-- `ctx.obj["output_format"]` — `OutputFormat.text` or `OutputFormat.json` (from `--output-format`)
-- Adjusts root logger level when `--verbose` is passed.
-
-To add a new command group: create a file in `src/cli_app/cli/commands/`, define a Typer app, export it from `__init__.py`, then add `app.add_typer(...)` in `src/cli_app/cli/app.py`.
-
-### Configuration via Environment Variables
-
-`ConsoleConfig` (`src/cli_app/utils/console.py`) and `LogConfig` (`src/cli_app/utils/log.py`) are Pydantic `BaseSettings` classes that read from environment variables and `.env` files:
-
-- Console: `CLI_APP_CONSOLE_*`
-- Logging: `CLI_APP_LOG_*`
-
-`get_console()` and `get_project_meta()` are `@cache`-decorated — call them anywhere without performance concern.
-
-### Logging (structlog)
-
-`setup_logging()` configures structlog bridged through stdlib via `ProcessorFormatter`. Both first-party (`structlog.get_logger()`) and third-party stdlib loggers share the same handler chain. Console output uses `ConsoleRenderer` by default; set `CLI_APP_LOG_USE_JSON_FORMATTER=true` for JSON. File output is always JSON.
-
-Use `structlog.contextvars.bind_contextvars(key=value)` to attach context that appears on every log line.
-
-Before `setup_logging()` is called (e.g. in tests), structlog defaults to stderr output so it never pollutes stdout.
-
-### Utilities
-
-| Module | Purpose |
-|--------|---------|
-| `src/cli_app/utils/console.py` | Singleton Rich `Console` with theming |
-| `src/cli_app/utils/log.py` | structlog setup; file + console handlers; `LogConfig` Pydantic settings |
-| `src/cli_app/utils/output.py` | `OutputFormat` enum; `render_output()` and `echo_json()` helpers |
-| `src/cli_app/utils/stdin.py` | `is_stdin_piped()`, `read_stdin_if_piped()`, `iter_stdin_lines()` |
-| `src/cli_app/utils/meta.py` | Reads distribution metadata at runtime; scans `direct_url.json` for editable-install compat |
-| `src/cli_app/utils/format.py` | Rich `Theme` with `info`/`warning`/`danger` styles |
-| `src/cli_app/utils/emoji.py` | `Emoji` StrEnum for consistent emoji usage |
-| `src/cli_app/utils/progress.py` | Rich `Progress` bar wired to the project console |
-| `src/cli_app/utils/misc.py` | `find_project_root()` helper |
-
-### Type Checking
-
-MyPy runs in strict mode (`disallow_untyped_defs = true`). All new code must have complete type annotations. Python 3.13+ union syntax (`X | Y`) is preferred over `Optional[X]`.
+1. Rename `src/lib/` to `src/yourpackage/`
+2. Update `name` and `[tool.uv.build-backend] module-name` in `pyproject.toml`
+3. Update `[tool.coverage.run] source` and `[tool.ruff.lint.isort] known-local-folder`
+4. Update `env_prefix` in `LogConfig` (e.g. `YOURPACKAGE_LOG_`)
+5. Global find-and-replace `lib.` imports → `yourpackage.`

@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from cli_app.utils.log import LogConfig, setup_logging
+from lib.utils.log import LogConfig, setup_logging
 
 _FILE_BACKUP_COUNT = 5
 _LOG_DIR_MAX_BYTES = 4 * 1024 * 1024
@@ -18,7 +18,7 @@ def test_log_config_defaults() -> None:
     assert config.console_level == logging.DEBUG
     assert config.file_level == logging.INFO
     assert config.use_json_formatter is False
-    assert config.file_name == "cli-app.log"
+    assert config.file_name == "lib.log"
     assert config.file_max_bytes == _LOG_DIR_MAX_BYTES
     assert config.file_backup_count == _FILE_BACKUP_COUNT
 
@@ -44,7 +44,7 @@ def test_log_config_invalid_level_raises() -> None:
 
 
 def test_log_config_level_from_env_var(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("CLI_APP_LOG_LEVEL", "WARNING")
+    monkeypatch.setenv("LIB_LOG_LEVEL", "WARNING")
     config = LogConfig()
     assert config.level == logging.WARNING
 
