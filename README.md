@@ -15,7 +15,7 @@ A template for building Python libraries with structured logging, environment-ba
 
 ## Requirements
 
-- Python 3.13+
+- Python 3.14+
 - uv
 
 ## Getting Started

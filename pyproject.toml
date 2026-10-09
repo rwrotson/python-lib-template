@@ -24,11 +24,11 @@ keywords = [
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
 license = { text = "MIT" }
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.14"
 dependencies = [
     "pydantic-settings>=2.0",
     "structlog>=25.5.0",
@@ -92,7 +92,7 @@ fail_under = 80
 [tool.mypy]
 mypy_path = "src"
 files = ["src", "tests"]
-python_version = "3.13"
+python_version = "3.14"
 disallow_untyped_defs = true
 disallow_any_unimported = true
 disallow_any_generics = true
@@ -145,7 +145,7 @@ exclude = [
 ]
 line-length = 100
 indent-width = 4
-target-version = "py313"
+target-version = "py314"
 src = ["src", "tests"]
 
 [tool.ruff.lint]

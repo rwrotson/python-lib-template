@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Python 3.13+
+- Python 3.14+
 - [uv](https://docs.astral.sh/uv/getting-started/installation/)
 
 ## Installation
