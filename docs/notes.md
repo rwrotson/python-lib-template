@@ -2,7 +2,7 @@
 
 ## Build Backend
 
-The project uses `uv_build` with the standard `src/` layout: source lives in `src/my_lib/`. This is the conventional approach and is configured with:
+`uv_build` loads the `my_lib` package from `src/`:
 
 ```toml
 [tool.uv.build-backend]
@@ -10,45 +10,55 @@ module-name = "my_lib"
 module-root = "src"
 ```
 
-`module-root = "src"` tells uv_build to look for `./src/my_lib/__init__.py` as the package root.
+The wheel includes `py.typed`, so type checkers use the package's inline annotations.
 
 ## structlog Integration
 
-Logging is built on [structlog](https://www.structlog.org/) bridged through stdlib's `logging` module via `ProcessorFormatter`. This means:
+`my_lib.utils.log.setup_logging()` connects [structlog](https://www.structlog.org/) to stdlib logging through `ProcessorFormatter`:
 
-- **First-party loggers** use `structlog.get_logger()` with keyword-argument context binding (`log.info("event", key=value)`).
-- **Third-party stdlib loggers** (e.g. `httpx`, `sqlalchemy`) are automatically picked up by the same handler chain.
-- **Console output** uses `ConsoleRenderer` (colourised, human-readable) by default, switching to `JSONRenderer` when `MY_LIB_LOG_USE_JSON_FORMATTER=true`.
-- **File output** always writes JSON for structured log analysis.
-- `structlog.contextvars.bind_contextvars()` lets you attach fields that appear on every subsequent log line within a request or operation.
+- Library modules use stdlib loggers; their records and structlog events share the same handlers.
+- Console logs use colourised `ConsoleRenderer` output or JSON when `MY_LIB_LOG__FORMAT=json`.
+- File logs use JSON and are written only when `MY_LIB_LOG__DIR` is set.
+- Timestamps are ISO 8601 in UTC.
+- `structlog.contextvars.bind_contextvars()` adds fields to subsequent logs in the current context.
 
-`setup_logging()` in `utils/log.py` must be called once at startup before any logger is used. Before it is called (e.g. during tests), structlog is configured to output to stderr via `PrintLoggerFactory` so it never pollutes stdout.
+The library never calls `setup_logging()` itself. An application that already configures logging or structlog should skip it.
 
 ## Commitizen & Versioning
 
-[Commitizen](https://commitizen-tools.github.io/commitizen/) reads Conventional Commit messages to determine the next version and generate CHANGELOG entries. Configuration lives in `[tool.commitizen]` in `pyproject.toml`:
+[Commitizen](https://commitizen-tools.github.io/commitizen/) reads Conventional Commit messages to select the next version and update `CHANGELOG.md`. Its settings are in `pyproject.toml`:
 
 ```toml
-version_provider = "uv"          # reads/writes the version in pyproject.toml
+version_provider = "uv"
 update_changelog_on_bump = true
-major_version_zero = true        # 0.x.y — breaking changes don't force 1.0
+major_version_zero = true
 ```
 
-The `commit-msg` pre-commit hook rejects commits that don't follow the format (`feat:`, `fix:`, `chore:`, etc.).
+The `commit-msg` hook checks Conventional Commit format.
 
-## `find_project_root()` Caching
+## Publishing
 
-`find_project_root()` is decorated with `@functools.cache`, so the filesystem walk happens only once per process — subsequent calls return the cached result immediately. This matters because `LogConfig` now uses a `Field(default_factory=...)` that calls `find_project_root()` at instantiation time; without caching, every `LogConfig()` call would trigger a directory walk.
-
-If you need to reset the cache (e.g. in tests that change the working directory), call `find_project_root.cache_clear()`.
+The release workflow publishes version tags to PyPI with [Trusted Publishing](https://docs.pypi.org/trusted-publishers/). On PyPI, add a trusted publisher with the repository owner and name, workflow `release.yml`, and environment `pypi`; for a project that does not exist on PyPI yet, add it as a pending publisher. Create the `pypi` environment in the GitHub repository settings, optionally with required reviewers.
 
 ## Renaming the Template
 
-To use this as a real project:
+Choose three names before editing: a distribution name (for example, `my-package`), an import
+package (`my_package`), and an environment prefix (`MY_PACKAGE_`). Check that the distribution
+name is free on PyPI.
 
-1. Rename `src/my_lib/` to your package name (e.g. `src/mylib/`)
-2. Update `name` in `pyproject.toml`
-3. Update `module-name` in `[tool.uv.build-backend]` to match the new directory name
-4. Update `[tool.coverage.run]` source and `[tool.ruff.lint.isort]` known-local-folder
-5. Update env-var prefix (`MY_LIB_LOG_*`) in `LogConfig`
-6. Do a global find-and-replace of `my_lib.` imports to your new package name
+1. Rename `src/my_lib/` to `src/my_package/`. Replace `my_lib` in imports throughout `src/`,
+   `tests/`, and `docs/`, including logger names in tests. Update `module-name` under
+   `[tool.uv.build-backend]`, `[tool.coverage.run].source`,
+   `[tool.ruff.lint.isort].known-first-party`, and `[tool.importlinter]` in `pyproject.toml`.
+2. Set `[project].name`, the description, authors, keywords, and `[project.urls]` in
+   `pyproject.toml`. Rename `MyLibError` if the name should match the package.
+3. Change `env_prefix` and the `env_fields()` default prefix in
+   `src/my_package/config/settings.py`, and `PREFIX` in `docs/gen_config_page.py`. Adjust the
+   default log file name in `LogSettings`. Update `.env.example`, README examples, and tests
+   using `MY_LIB_` variables.
+4. Update `mkdocs.yml` (`site_name`, repository links, and the source watch path) and
+   `docs/gen_ref_pages.py`, which scans the import package for API pages. Update names and
+   links in README, docs, `AGENTS.md`, and the PyPI URL in `.github/workflows/release.yml`.
+5. Configure the PyPI trusted publisher and GitHub Pages as described above.
+6. Regenerate the lockfile with `uv lock`, then run `uv sync --all-groups --locked`,
+   `uv run poe check`, `uv build`, and `uv run --group docs mkdocs build --strict`.

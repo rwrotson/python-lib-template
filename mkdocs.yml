@@ -1,5 +1,5 @@
 site_name: python-lib-template
-site_description: A template for building Python Libraries with structured logging
+site_description: A template for building typed Python libraries with optional structured logging setup
 repo_url: https://github.com/rwrotson/python-lib-template
 repo_name: rwrotson/python-lib-template
 
@@ -11,6 +11,7 @@ watch:
 nav:
   - Home: index.md
   - Getting Started: getting_started.md
+  - Architecture: architecture.md
   - Configuration: configuration.md
   - Notes: notes.md
   - API Reference: reference/
@@ -58,7 +59,7 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
-          paths: [.]
+          paths: [src]
           options:
             show_source: true
             show_root_heading: true
