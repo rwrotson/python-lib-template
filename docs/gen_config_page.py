@@ -1,53 +1,64 @@
-"""Generate docs/configuration.md from .env.example at docs build time."""  # noqa: INP001
-
-from pathlib import Path
+import html
+import json
+from collections.abc import Iterator
 
 import mkdocs_gen_files
+from pydantic.fields import FieldInfo
 
-env_example = Path(__file__).parent.parent / ".env.example"
-lines = env_example.read_text().splitlines()
+from my_lib.config.settings import Settings, env_fields, nested_model
 
-sections: list[tuple[str, list[tuple[str, str, str]]]] = []  # [(heading, [(var, default, desc)])]
-current_heading = ""
-current_rows: list[tuple[str, str, str]] = []
+PREFIX = "MY_LIB_"
 
-for line in lines:
-    stripped = line.strip()
-    if not stripped:
-        continue
-    if stripped.startswith("#") and "=" not in stripped:
-        if current_heading:
-            sections.append((current_heading, current_rows))
-        current_heading = stripped.lstrip("# ").strip()
-        current_rows = []
-    elif "=" in stripped:
-        # Split off inline comment
-        if " #" in stripped:
-            var_part, desc = stripped.split(" #", 1)
-            desc = desc.strip()
-        else:
-            var_part, desc = stripped, ""
-        var, _, default = var_part.partition("=")
-        current_rows.append((var.strip(), default.strip(), desc))
 
-if current_heading:
-    sections.append((current_heading, current_rows))
+def type_name(field: FieldInfo) -> str:
+    """Format a field type for a Markdown table cell."""
+    name = str(field.annotation).replace("typing.", "").replace("pathlib.", "")
+    name = name.replace("_local.", "").replace("<class '", "").replace("'>", "")
+    # A backslash-escaped pipe stays visible inside a code span, so use an HTML entity.
+    return f"<code>{html.escape(name).replace('|', '&#124;')}</code>"
 
-md_lines: list[str] = [
-    "# Configuration\n",
-    "All settings are read from environment variables or a `.env` file in the project root.\n",
-    "Copy `.env.example` to `.env` and uncomment the variables you want to override.\n",
+
+def default_value(field: FieldInfo) -> str:
+    """Format a field default for a Markdown table cell."""
+    if field.is_required():
+        return "required"
+    value = field.get_default(call_default_factory=True)
+    return "—" if value is None else f"`{json.dumps(value, default=str)}`"
+
+
+def table(rows: Iterator[tuple[str, FieldInfo]]) -> list[str]:
+    """Build a configuration table from setting fields."""
+    lines = ["| Variable | Type | Default | Description |", "| --- | --- | --- | --- |"]
+    for variable, field in rows:
+        description = field.description or ""
+        lines.append(
+            f"| `{variable}` | {type_name(field)} | {default_value(field)} | {description} |"
+        )
+    return lines
+
+
+lines = [
+    "# Configuration",
+    "",
+    f"This page is generated from `my_lib.config.Settings`. Values are read from `{PREFIX}*` "
+    "environment variables and `.env` in the working directory; the process environment wins. "
+    f"Nested sections use `__`, for example `{PREFIX}LOG__LEVEL`. Empty values use the default.",
 ]
-
-for heading, rows in sections:
-    md_lines.append(f"\n## {heading}\n")
-    md_lines.append("| Variable | Default | Description |")
-    md_lines.append("|----------|---------|-------------|")
-    for var, default, desc in rows:
-        default_cell = f"`{default}`" if default else "—"
-        md_lines.append(f"| `{var}` | {default_cell} | {desc} |")
+top_level = [
+    (variable, field)
+    for variable, field in env_fields()
+    if "__" not in variable.removeprefix(PREFIX)
+]
+if top_level:
+    lines += ["", "## Application", "", *table(iter(top_level))]
+for name, field in Settings.model_fields.items():
+    section = nested_model(field)
+    if section is None:
+        continue
+    lines += ["", f"## {name.capitalize()}", "", (section.__doc__ or "").strip(), ""]
+    lines += table(env_fields(section, f"{PREFIX}{name.upper()}__"))
 
 with mkdocs_gen_files.open("configuration.md", "w") as fd:
-    fd.write("\n".join(md_lines) + "\n")
+    fd.write("\n".join(lines) + "\n")
 
-mkdocs_gen_files.set_edit_path("configuration.md", env_example)
+mkdocs_gen_files.set_edit_path("configuration.md", "../src/my_lib/config/settings.py")

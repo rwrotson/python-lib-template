@@ -1,11 +1,10 @@
-"""Generate API reference pages from src/my_lib/ at docs build time."""  # noqa: INP001
-
 from pathlib import Path
 
 import mkdocs_gen_files
+from mkdocs_gen_files.nav import Nav
 
 src = Path(__file__).parent.parent / "src" / "my_lib"
-nav = mkdocs_gen_files.Nav()
+nav = Nav()  # type: ignore[no-untyped-call]  # Nav.__init__ has no annotations.
 
 for path in sorted(src.rglob("*.py")):
     if path.name == "__init__.py" or path.name.startswith("_"):

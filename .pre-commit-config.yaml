@@ -1,3 +1,6 @@
+default_install_hook_types: [pre-commit, commit-msg, pre-push]
+default_stages: [pre-commit]
+
 repos:
   - repo: https://github.com/commitizen-tools/commitizen
     rev: v4.19.2
@@ -15,32 +18,48 @@ repos:
     hooks:
       - id: end-of-file-fixer
       - id: trailing-whitespace
-      - id: detect-private-key
-      - id: check-toml
       - id: check-yaml
+        # mkdocs.yml uses !!python/name tags for emoji extensions.
         args: [--unsafe]
+      - id: check-toml
       - id: check-merge-conflict
-      - id: debug-statements
+      - id: check-added-large-files
+      - id: detect-private-key
 
-  - repo: https://github.com/Lucas-C/pre-commit-hooks
-    rev: v1.5.6
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.12
     hooks:
-      - id: forbid-tabs
+      - id: actionlint
 
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.10
-    hooks:
-      - id: ruff-check
-        types_or: [ python, pyi ]
-        args: [ --fix ]
-      - id: ruff-format
-        types_or: [ python, pyi ]
-
+  # Use versions locked in the project environment.
   - repo: local
     hooks:
+      - id: ruff-check
+        name: ruff check
+        entry: uv run --no-sync ruff check --fix
+        language: system
+        types_or: [python, pyi]
+      - id: ruff-format
+        name: ruff format
+        entry: uv run --no-sync ruff format
+        language: system
+        types_or: [python, pyi]
+      - id: lint-imports
+        name: import-linter
+        entry: uv run --no-sync lint-imports
+        language: system
+        pass_filenames: false
+        types: [python]
+      - id: mypy
+        name: mypy
+        entry: uv run --no-sync mypy
+        language: system
+        pass_filenames: false
+        types: [python]
       - id: pytest
         name: pytest
-        entry: uv run pytest -x --no-cov -q
+        entry: uv run --no-sync pytest -q
         language: system
         pass_filenames: false
         always_run: true
+        stages: [pre-push]

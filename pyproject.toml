@@ -8,28 +8,30 @@ authors = [
 ]
 maintainers = []
 keywords = [
-    "python",
-    "library",
     "template",
     "example",
+    "library",
     "structlog",
+    "pydantic-settings",
     "uv",
     "pytest",
     "ruff",
     "mypy",
     "precommit",
     "mkdocs",
-
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3.14",
+    "Typing :: Typed",
 ]
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICENSE"]
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
+    "pydantic>=2.12.0",
     "pydantic-settings>=2.15.0",
     "structlog>=26.1.0",
 ]
@@ -42,14 +44,16 @@ Changelog = "https://github.com/rwrotson/python-lib-template/blob/main/CHANGELOG
 [dependency-groups]
 dev = [
     "commitizen>=4.19.2",
+    "import-linter>=2.15",
     "mypy>=2.4.0",
+    "poethepoet>=0.48.0",
     "pre-commit>=4.6.2",
     "pytest>=9.1.1",
     "pytest-cov>=7.1.0",
+    "pytest-randomly>=5.0.0",
     "pytest-timeout>=2.4.0",
     "pytest-xdist>=3.8.0",
     "ruff>=0.16.10",
-    "taskipy>=1.14.1",
 ]
 docs = [
     "mkdocs-gen-files>=0.6.1",
@@ -62,8 +66,12 @@ docs = [
 
 # BUILD BACKEND ----------------------------------------------------------------
 [build-system]
-requires = ["uv_build>=0.12.24"]
+requires = ["uv_build>=0.12.24,<0.13"]
 build-backend = "uv_build"
+
+[tool.uv]
+# Security floors for transitive dependencies.
+constraint-dependencies = ["urllib3>=2.8.0", "virtualenv>=21.7.13"]
 
 [tool.uv.build-backend]
 module-name = "my_lib"
@@ -73,161 +81,123 @@ module-root = "src"
 # PYTEST -----------------------------------------------------------------------
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--maxfail=3 --tb=short --cov --cov-report=term-missing -n auto --timeout=30"
+addopts = "-ra --tb=short --strict-markers --strict-config -n auto"
+xfail_strict = true
+filterwarnings = ["error"]
+timeout = 30
 
 [tool.coverage.run]
 source = ["my_lib"]
 omit = ["*/__init__.py"]
+branch = true
 parallel = true
 concurrency = ["multiprocessing"]
 
 [tool.coverage.report]
 show_missing = true
 skip_covered = false
-fail_under = 80
+fail_under = 95
 
 
 # MYPY -------------------------------------------------------------------------
 [tool.mypy]
-mypy_path = "src"
-files = ["src", "tests"]
 python_version = "3.14"
-disallow_untyped_defs = true
+mypy_path = "src"
+explicit_package_bases = true
+files = ["src", "tests", "docs"]
+exclude_gitignore = true
+strict = true
 disallow_any_unimported = true
-disallow_any_generics = true
-disallow_subclassing_any = true
-disallow_untyped_calls = true
-disallow_incomplete_defs = true
-disallow_untyped_decorators = true
-no_implicit_optional = true
-no_implicit_reexport = true
-check_untyped_defs = true
-warn_return_any = true
-warn_redundant_casts = true
 warn_unused_ignores = true
-warn_unused_configs = true
-strict_equality = true
-show_error_codes = true
 plugins = ["pydantic.mypy"]
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
 
 
 # RUFF -------------------------------------------------------------------------
 [tool.ruff]
-exclude = [
-    ".bzr",
-    ".direnv",
-    ".eggs",
-    ".git",
-    ".git-rewrite",
-    ".hg",
-    ".ipynb_checkpoints",
-    ".mypy_cache",
-    ".nox",
-    ".pants.d",
-    ".pyenv",
-    ".pytest_cache",
-    ".pytype",
-    ".ruff_cache",
-    ".svn",
-    ".tox",
-    ".venv",
-    ".vscode",
-    "__pypackages__",
-    "_build",
-    "buck-out",
-    "build",
-    "dist",
-    "node_modules",
-    "site-packages",
-    "venv",
-    "migrations",
-    "examples",
-]
 line-length = 100
-indent-width = 4
 target-version = "py314"
 src = ["src", "tests"]
 
 [tool.ruff.lint]
 select = [
-    "ERA",
-    "YTT",
-    "ANN",
-    "ASYNC",
-    "S",
-    "BLE",
-    "B",
-    "A",
-    "COM",
-    "C4",
-    "DTZ",
-    "ICN",
-    "LOG",
-    "G",
-    "INP",
-    "PIE",
-    "PYI",
-    "PT",
-    "Q",
-    "RSE",
-    "RET",
-    "SLF",
-    "SIM",
-    "SLOT",
-    "TID",
-    "ARG",
-    "PTH",
-    "FLY",
-    "I",
-    "C90",
-    "N",
-    "PERF",
     "E",
-    "W",
-    "DOC",
-    "D",
     "F",
-    "PL",
-    "PLC",
-    "PLE",
-    "PLR",
-    "PLW",
+    "I",
     "UP",
-    "FURB",
+    "B",
+    "ASYNC",
+    "ANN",
+    "S",
     "RUF",
-    "TRY"
-]
-ignore = [
-    "FBT001",
-    "FBT002",
-    "F811",
-    "D100",
+    "TID",
+    "C4",
+    "SIM",
+    "PT",
+    "RET",
+    "ARG",
+    "PERF",
+    "FURB",
+    "PL",
+    "DTZ",
+    "T20",
+    "ERA",
+    "BLE",
+    "N",
+    "PIE",
     "D101",
     "D102",
     "D103",
-    "D104",
-    "D105",
-    "D106",
-    "D107",
-    "D203",
-    "D213",
-    "D407",
-    "D413",
-    "S101",
-    "ANN201",
-    "PLR1711",
-    "PLR0913",
-    "PIE790",
-    "N817",
-    "TRY003",
-    "COM812",
+    "PGH003",
+    "PGH004",
+    "T100",
+    "C901",
+    "FBT003",
+    "A001",
+    "A002",
+    "A004",
+    "A005",
+    "A006",
+    "G001",
+    "G002",
+    "G003",
+    "G004",
+    "G101",
+    "G201",
+    "G202",
+    "LOG001",
+    "LOG002",
+    "LOG014",
+    "LOG015"
 ]
-fixable = ["I", "D2"]
-unfixable = []
-dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"  # Allow unused variables when underscore-prefixed.
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    "PLR2004",
+    "ARG",
+    "S101",
+    "S105",
+    "S106",
+    "D101",
+    "D102",
+    "D103"
+]
+"docs/**" = ["T20"]
+# Package __init__ files re-export from sibling modules.
+"src/**/__init__.py" = ["TID252"]
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.lint.mccabe]
+max-complexity = 8
 
 [tool.ruff.lint.isort]
-known-local-folder = ["my_lib"]
+known-first-party = ["my_lib"]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -248,11 +218,46 @@ update_changelog_on_bump = true
 major_version_zero = true
 
 
-# TASKIPY ---------------------------------------------------------------------
-[tool.taskipy.tasks]
-lint = "ruff check ."
+# IMPORT-LINTER ----------------------------------------------------------------
+[tool.importlinter]
+root_package = "my_lib"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "Core API stays independent of configuration and logging setup"
+type = "forbidden"
+source_modules = ["my_lib.core"]
+forbidden_modules = [
+    "structlog", "pydantic", "pydantic_settings", "my_lib.config", "my_lib.utils",
+]
+
+[[tool.importlinter.contracts]]
+name = "Configuration has no library dependencies"
+type = "forbidden"
+source_modules = ["my_lib.config"]
+forbidden_modules = ["structlog", "my_lib.core", "my_lib.utils"]
+
+[[tool.importlinter.contracts]]
+name = "Utilities do not depend on the core API"
+type = "forbidden"
+source_modules = ["my_lib.utils"]
+forbidden_modules = ["my_lib.core"]
+
+
+# POETHEPOET -------------------------------------------------------------------
+[tool.poe.tasks]
 fmt = "ruff format ."
-typecheck = "mypy src/my_lib tests/"
-test = "pytest"
-test-fast = "pytest --no-cov -n auto"
-audit = "uv run --with pip-audit pip-audit"
+fmt-check = "ruff format --check ."
+lint = "ruff check ."
+lint-imports = "lint-imports"
+typecheck = "mypy"
+test = "pytest --cov"
+test-fast = "pytest"
+docs = "mkdocs serve"
+check = ["fmt-check", "lint", "lint-imports", "typecheck", "test"]
+
+[tool.poe.tasks.audit]
+shell = """
+uv export --quiet --format requirements-txt --all-groups --locked --no-emit-project --no-hashes --output-file requirements-audit.txt
+uv run --locked --with pip-audit pip-audit --requirement requirements-audit.txt --no-deps
+"""
