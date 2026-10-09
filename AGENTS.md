@@ -91,11 +91,12 @@ It runs CI first, then:
 
 - **`build`** — `uv build`; uploads `dist/` as an artifact.
 - **`publish`** — tags only; publishes `dist/` to **PyPI** with Trusted Publishing (OIDC, the
-  `pypi` environment, `id-token: write`). No API token is stored.
+  `pypi` environment, `id-token: write`). No API token is stored. Skipped in the
+  `rwrotson/python-lib-template` repository itself, so tagging the template only deploys docs.
 - **`docs`** — builds the site with `mkdocs build --strict` and deploys it to **GitHub Pages** via
   `actions/upload-pages-artifact` + `actions/deploy-pages` (the `github-pages` environment).
 
-PyPI needs a trusted publisher for this repository with workflow `release.yml` and environment
+In a project created from the template, PyPI needs a trusted publisher for the repository with workflow `release.yml` and environment
 `pypi`. Pages Source must be set to **"GitHub Actions"** (Settings → Pages), and the
 `github-pages` environment must allow the `v*` tag. Site:
 https://rwrotson.github.io/python-lib-template/

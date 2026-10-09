@@ -154,10 +154,10 @@ Dependabot opens weekly grouped PRs for uv dependencies, GitHub Actions, and pre
 | Job | What it does |
 |-----|-------------|
 | `build` | builds the sdist and wheel |
-| `publish` | publishes to PyPI with Trusted Publishing (tags only) |
+| `publish` | publishes to PyPI with Trusted Publishing (tags only; skipped in the template repository) |
 | `docs` | builds MkDocs and deploys it to GitHub Pages via GitHub Actions |
 
-Configure a trusted publisher on PyPI for this repository with workflow `release.yml` and environment `pypi`. Set Pages Source to **GitHub Actions** and allow `v*` tags in the `github-pages` environment.
+In a project created from this template, configure a trusted publisher on PyPI with workflow `release.yml` and environment `pypi`. Set Pages Source to **GitHub Actions** and allow `v*` tags in the `github-pages` environment.
 
 ## Using This Template
 

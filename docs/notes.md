@@ -38,7 +38,9 @@ The `commit-msg` hook checks Conventional Commit format.
 
 ## Publishing
 
-The release workflow publishes version tags to PyPI with [Trusted Publishing](https://docs.pypi.org/trusted-publishers/). On PyPI, add a trusted publisher with the repository owner and name, workflow `release.yml`, and environment `pypi`; for a project that does not exist on PyPI yet, add it as a pending publisher. Create the `pypi` environment in the GitHub repository settings, optionally with required reviewers.
+In a project created from this template, the release workflow publishes version tags to PyPI with [Trusted Publishing](https://docs.pypi.org/trusted-publishers/). On PyPI, add a trusted publisher with the repository owner and name, workflow `release.yml`, and environment `pypi`; for a project that does not exist on PyPI yet, add it as a pending publisher. Create the `pypi` environment in the GitHub repository settings, optionally with required reviewers.
+
+The `publish` job is skipped when the workflow runs in `rwrotson/python-lib-template`, so release tags of the template deploy documentation only. The condition compares the repository name and needs no change after copying.
 
 ## Renaming the Template
 
