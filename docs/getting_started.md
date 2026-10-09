@@ -53,9 +53,9 @@ Behaviour can be overridden via environment variables or a `.env` file:
 
 | Prefix | Controls |
 |--------|----------|
-| `LIB_LOG_*` | Log level, file path, rotation, JSON format |
+| `MY_LIB_LOG_*` | Log level, file path, rotation, JSON format |
 
 ```env
-LIB_LOG_LEVEL=DEBUG
-LIB_LOG_USE_JSON_FORMATTER=true   # JSON logs for Datadog/Loki/etc.
+MY_LIB_LOG_LEVEL=DEBUG
+MY_LIB_LOG_USE_JSON_FORMATTER=true   # JSON logs for Datadog/Loki/etc.
 ```

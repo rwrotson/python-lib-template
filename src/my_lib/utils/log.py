@@ -7,24 +7,24 @@ import structlog
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from lib.utils.misc import find_project_root
+from my_lib.utils.misc import find_project_root
 
 
 class LogConfig(BaseSettings):
-    """Pydantic settings for logging, configurable via LIB_LOG_* env vars."""
+    """Pydantic settings for logging, configurable via MY_LIB_LOG_* env vars."""
 
     level: int = logging.INFO
     console_level: int = logging.DEBUG
     file_level: int = logging.INFO
     dir: Path = find_project_root() / "logs"
-    file_name: str = "lib.log"
+    file_name: str = "my-lib.log"
     file_max_bytes: int = 4 * 1024 * 1024
     file_backup_count: int = 5
     use_json_formatter: bool = False
 
     model_config = SettingsConfigDict(
         env_file=".env",
-        env_prefix="LIB_LOG_",
+        env_prefix="MY_LIB_LOG_",
         extra="ignore",
         case_sensitive=False,
     )

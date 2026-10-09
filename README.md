@@ -78,18 +78,18 @@ Logging behaviour can be configured via environment variables or a `.env` file:
 
 | Prefix | Controls |
 |--------|----------|
-| `LIB_LOG_*` | Log level, file rotation, JSON output |
+| `MY_LIB_LOG_*` | Log level, file rotation, JSON output |
 
 ```env
-LIB_LOG_LEVEL=DEBUG
-LIB_LOG_USE_JSON_FORMATTER=true   # emit JSON logs (for Datadog, Loki, etc.)
+MY_LIB_LOG_LEVEL=DEBUG
+MY_LIB_LOG_USE_JSON_FORMATTER=true   # emit JSON logs (for Datadog, Loki, etc.)
 ```
 
 ## Project Structure
 
 ```
 src/
-└── lib/                     # rename to your package name
+└── my_lib/                   # rename to your package name
     ├── utils/
     │   ├── log.py           # structlog setup (ConsoleRenderer dev / JSON prod)
     │   └── misc.py          # find_project_root()

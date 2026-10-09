@@ -1,10 +1,10 @@
-"""Generate API reference pages from src/lib/ at docs build time."""  # noqa: INP001
+"""Generate API reference pages from src/my_lib/ at docs build time."""  # noqa: INP001
 
 from pathlib import Path
 
 import mkdocs_gen_files
 
-src = Path(__file__).parent.parent / "src" / "lib"
+src = Path(__file__).parent.parent / "src" / "my_lib"
 nav = mkdocs_gen_files.Nav()
 
 for path in sorted(src.rglob("*.py")):

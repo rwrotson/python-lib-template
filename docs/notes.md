@@ -2,15 +2,15 @@
 
 ## Build Backend
 
-The project uses `uv_build` with the standard `src/` layout: source lives in `src/lib/`. This is the conventional approach and is configured with:
+The project uses `uv_build` with the standard `src/` layout: source lives in `src/my_lib/`. This is the conventional approach and is configured with:
 
 ```toml
 [tool.uv.build-backend]
-module-name = "lib"
+module-name = "my_lib"
 module-root = "src"
 ```
 
-`module-root = "src"` tells uv_build to look for `./src/lib/__init__.py` as the package root.
+`module-root = "src"` tells uv_build to look for `./src/my_lib/__init__.py` as the package root.
 
 ## structlog Integration
 
@@ -18,7 +18,7 @@ Logging is built on [structlog](https://www.structlog.org/) bridged through stdl
 
 - **First-party loggers** use `structlog.get_logger()` with keyword-argument context binding (`log.info("event", key=value)`).
 - **Third-party stdlib loggers** (e.g. `httpx`, `sqlalchemy`) are automatically picked up by the same handler chain.
-- **Console output** uses `ConsoleRenderer` (colourised, human-readable) by default, switching to `JSONRenderer` when `LIB_LOG_USE_JSON_FORMATTER=true`.
+- **Console output** uses `ConsoleRenderer` (colourised, human-readable) by default, switching to `JSONRenderer` when `MY_LIB_LOG_USE_JSON_FORMATTER=true`.
 - **File output** always writes JSON for structured log analysis.
 - `structlog.contextvars.bind_contextvars()` lets you attach fields that appear on every subsequent log line within a request or operation.
 
@@ -46,9 +46,9 @@ If you need to reset the cache (e.g. in tests that change the working directory)
 
 To use this as a real project:
 
-1. Rename `src/lib/` to your package name (e.g. `src/mylib/`)
+1. Rename `src/my_lib/` to your package name (e.g. `src/mylib/`)
 2. Update `name` in `pyproject.toml`
 3. Update `module-name` in `[tool.uv.build-backend]` to match the new directory name
 4. Update `[tool.coverage.run]` source and `[tool.ruff.lint.isort]` known-local-folder
-5. Update env-var prefix (`LIB_LOG_*`) in `LogConfig`
-6. Do a global find-and-replace of `lib.` imports to your new package name
+5. Update env-var prefix (`MY_LIB_LOG_*`) in `LogConfig`
+6. Do a global find-and-replace of `my_lib.` imports to your new package name
