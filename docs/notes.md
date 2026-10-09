@@ -24,6 +24,12 @@ The wheel includes `py.typed`, so type checkers use the package's inline annotat
 
 The library never calls `setup_logging()` itself. An application that already configures logging or structlog should skip it.
 
+## Documentation Toolchain
+
+The site is built with [ProperDocs](https://properdocs.org/), a maintained continuation of MkDocs 1.x that reads the same configuration (`properdocs.yml`) and runs MkDocs themes and plugins unchanged. MkDocs 2.0 drops the plugin and theme system, and Material for MkDocs requires `mkdocs<2`, so the `mkdocs` package stays on 1.x as a library dependency of the plugins. Running `properdocs` instead of `mkdocs` also avoids the MkDocs 2.0 warnings printed by Material and the plugins.
+
+[Zensical](https://zensical.org/), the successor to Material for MkDocs, does not support `mkdocs-gen-files` yet; the API reference and configuration pages depend on it.
+
 ## Commitizen & Versioning
 
 [Commitizen](https://commitizen-tools.github.io/commitizen/) reads Conventional Commit messages to select the next version and update `CHANGELOG.md`. Its settings are in `pyproject.toml`:
@@ -58,9 +64,9 @@ name is free on PyPI.
    `src/my_package/config/settings.py`, and `PREFIX` in `docs/gen_config_page.py`. Adjust the
    default log file name in `LogSettings`. Update `.env.example`, README examples, and tests
    using `MY_LIB_` variables.
-4. Update `mkdocs.yml` (`site_name`, repository links, and the source watch path) and
+4. Update `properdocs.yml` (`site_name`, repository links, and the source watch path) and
    `docs/gen_ref_pages.py`, which scans the import package for API pages. Update names and
    links in README, docs, `AGENTS.md`, and the PyPI URL in `.github/workflows/release.yml`.
 5. Configure the PyPI trusted publisher and GitHub Pages as described above.
 6. Regenerate the lockfile with `uv lock`, then run `uv sync --all-groups --locked`,
-   `uv run poe check`, `uv build`, and `uv run --group docs mkdocs build --strict`.
+   `uv run poe check`, `uv build`, and `uv run --group docs properdocs build --strict`.

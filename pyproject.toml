@@ -18,7 +18,7 @@ keywords = [
     "ruff",
     "mypy",
     "precommit",
-    "mkdocs",
+    "properdocs",
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -61,6 +61,7 @@ docs = [
     "mkdocs-material>=9.7.7",
     "mkdocs-minify-plugin>=0.8.0",
     "mkdocstrings[python]>=1.0.6",
+    "properdocs>=1.6.7",
 ]
 
 
@@ -253,7 +254,7 @@ lint-imports = "lint-imports"
 typecheck = "mypy"
 test = "pytest --cov"
 test-fast = "pytest"
-docs = "mkdocs serve"
+docs = "properdocs serve"
 check = ["fmt-check", "lint", "lint-imports", "typecheck", "test"]
 
 [tool.poe.tasks.audit]

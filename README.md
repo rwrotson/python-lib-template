@@ -10,7 +10,7 @@ A Python library template with a typed public API, optional structlog logging se
 - One Pydantic `Settings` with a nested `MY_LIB_LOG__*` section, a test that keeps `.env.example` in sync, and a generated configuration page
 - import-linter contracts that keep the core API independent of configuration and logging setup
 - Strict MyPy with the Pydantic plugin, Ruff, pytest in parallel and random order with a 95% branch coverage gate, poethepoet tasks, pre-commit hooks, Commitizen
-- CI on Ubuntu and macOS with a lowest-dependency test job, package and strict docs builds, pip-audit, and trivy; actions pinned to commit SHAs; PyPI Trusted Publishing and MkDocs on GitHub Pages after CI passes on a release tag
+- CI on Ubuntu and macOS with a lowest-dependency test job, package and strict docs builds, pip-audit, and trivy; actions pinned to commit SHAs; PyPI Trusted Publishing and ProperDocs on GitHub Pages after CI passes on a release tag
 
 ## Stack
 
@@ -23,7 +23,7 @@ A Python library template with a typed public API, optional structlog logging se
 - **[import-linter](https://import-linter.readthedocs.io/)** — layer boundary contracts
 - **[poethepoet](https://poethepoet.natn.io/)** — task runner
 - **[commitizen](https://commitizen-tools.github.io/commitizen/)** — Conventional Commits + automated versioning and CHANGELOG
-- **[MkDocs Material](https://squidfunk.github.io/mkdocs-material/)** — documentation site
+- **[ProperDocs](https://properdocs.org/)** + **[Material for MkDocs](https://squidfunk.github.io/mkdocs-material/)** — documentation site
 
 ## Requirements
 
@@ -84,11 +84,11 @@ uv build
 ## Docs
 
 ```bash
-uv run --group docs mkdocs serve
-uv run --group docs mkdocs build
+uv run --group docs properdocs serve
+uv run --group docs properdocs build
 ```
 
-Source is in `docs/`. MkDocs generates the API reference from public docstrings. The release workflow deploys the site to GitHub Pages.
+Source is in `docs/`. ProperDocs generates the API reference from public docstrings. The release workflow deploys the site to GitHub Pages.
 
 ## Versioning & Changelog
 
@@ -145,7 +145,7 @@ tests/                       # mirrors the package; test_package.py checks impor
 | `quality` | ruff format check, ruff lint, import-linter contracts, strict mypy |
 | `test` | parallel tests in random order on Ubuntu and macOS, 95% branch coverage enforced |
 | `lowest` | tests against the lowest allowed direct dependencies |
-| `build` | package build, `mkdocs build --strict`, pip-audit, trivy filesystem scan (CRITICAL/HIGH) |
+| `build` | package build, `properdocs build --strict`, pip-audit, trivy filesystem scan (CRITICAL/HIGH) |
 
 Dependabot opens weekly grouped PRs for uv dependencies, GitHub Actions, and pre-commit hooks.
 
@@ -155,7 +155,7 @@ Dependabot opens weekly grouped PRs for uv dependencies, GitHub Actions, and pre
 |-----|-------------|
 | `build` | builds the sdist and wheel |
 | `publish` | publishes to PyPI with Trusted Publishing (tags only; skipped in the template repository) |
-| `docs` | builds MkDocs and deploys it to GitHub Pages via GitHub Actions |
+| `docs` | builds the docs with ProperDocs and deploys it to GitHub Pages via GitHub Actions |
 
 In a project created from this template, configure a trusted publisher on PyPI with workflow `release.yml` and environment `pypi`. Set Pages Source to **GitHub Actions** and allow `v*` tags in the `github-pages` environment.
 
@@ -171,7 +171,7 @@ The example function is meant to be copied, then deleted. When your first real A
 - `greet` from `src/my_lib/core/__init__.py` and `src/my_lib/__init__.py`
 - the `my_lib.core.example` row in `docs/reference/index.md` and the example in this README
 
-Then run `uv run poe check` and `uv run --group docs mkdocs build --strict`.
+Then run `uv run poe check` and `uv run --group docs properdocs build --strict`.
 
 ## Author
 
