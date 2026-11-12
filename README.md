@@ -153,7 +153,7 @@ Dependabot opens weekly grouped PRs for uv dependencies, GitHub Actions, and pre
 
 | Job | What it does |
 |-----|-------------|
-| `build` | builds the sdist and wheel |
+| `build` | checks that the tag matches the project version, builds the sdist and wheel |
 | `publish` | publishes to PyPI with Trusted Publishing (tags only; skipped in the template repository) |
 | `docs` | builds the docs with ProperDocs and deploys it to GitHub Pages via GitHub Actions |
 

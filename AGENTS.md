@@ -89,7 +89,8 @@ Parallel jobs:
 `.github/workflows/release.yml` triggers on version tags (`v*`) and manual `workflow_dispatch`.
 It runs CI first, then:
 
-- **`build`** — `uv build`; uploads `dist/` as an artifact.
+- **`build`** — on tags, checks that the tag matches `uv version --short`; then `uv build`
+  and uploads `dist/` as an artifact.
 - **`publish`** — tags only; publishes `dist/` to **PyPI** with Trusted Publishing (OIDC, the
   `pypi` environment, `id-token: write`). No API token is stored. Skipped in the
   `rwrotson/python-lib-template` repository itself, so tagging the template only deploys docs.
