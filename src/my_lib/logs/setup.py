@@ -64,12 +64,14 @@ def setup_logging(config: LogSettings | None = None) -> None:
         structlog.processors.TimeStamper(fmt="iso", utc=True),
         structlog.processors.StackInfoRenderer(),
     ]
+
     # Only JSON output formats exceptions as text; ConsoleRenderer renders exc_info itself.
     json_processors: list[structlog.types.Processor] = [
         structlog.stdlib.ProcessorFormatter.remove_processors_meta,
         structlog.processors.format_exc_info,
         structlog.processors.JSONRenderer(),
     ]
+
     console_processors: list[structlog.types.Processor] = [
         structlog.stdlib.ProcessorFormatter.remove_processors_meta,
         structlog.dev.ConsoleRenderer(),
@@ -86,6 +88,7 @@ def setup_logging(config: LogSettings | None = None) -> None:
         if isinstance(handler, (_AppFileHandler, _AppConsoleHandler)):
             root_logger.removeHandler(handler)
             handler.close()
+
     for handler in handlers:
         root_logger.addHandler(handler)
     root_logger.setLevel(config.level)

@@ -59,6 +59,7 @@ uv run --group docs properdocs build --strict
 - Change dependencies through uv (`uv add`, `uv remove`) so `pyproject.toml` and `uv.lock` change together. Verify the lock with `uv sync --locked --all-groups`.
 - Raise a direct dependency's lower bound when code needs a newer API. The locked environment does not check lower bounds; the CI `lowest` job does.
 - Do not import packages that are installed only as transitive dependencies.
+- Add a new third-party dependency to the lowest layer that needs it and to that layer's extra (none for `core`), and update the import-linter contract that lists the layer's allowed packages.
 - Security floors for transitive dependencies go in `[tool.uv] constraint-dependencies`.
 - Use the project environment for tools. Do not install packages manually into `.venv`.
 
@@ -139,7 +140,7 @@ src/my_lib/cli/         — Typer app, its MY_LIB_* Settings, composition root (
 src/my_lib/main.py      — `my-lib` console script; reports a missing `cli` extra
 ```
 
-Follow the layers in `docs/architecture.md`. From top to bottom they are `main`, `cli`, `logs`, and `core`; a layer imports only layers below it. `main`, `cli`, and `logs` import library names only from `my_lib`, never from `my_lib.core` modules. The core uses only Pydantic among third-party packages; `logs` adds structlog, and `cli` adds Pydantic Settings and Typer. import-linter contracts in `pyproject.toml` enforce these rules (`uv run poe lint-imports`).
+Follow the layers in `docs/architecture.md`. From top to bottom they are `main`, `cli`, `logs`, and `core`; a layer imports only layers below it. `main`, `cli`, and `logs` import library names only from `my_lib`, never from `my_lib.core` modules. Import a module or package whose name starts with `_` only from modules in the same package and its subpackages. The core uses only Pydantic among third-party packages; `logs` adds structlog, and `cli` adds Pydantic Settings and Typer. import-linter contracts in `pyproject.toml` enforce these rules (`uv run poe lint-imports`).
 
 Expected failures raise a `MyLibError` subclass. Subclass a built-in exception as well when callers would reasonably catch it (`InvalidInputError` is also a `ValueError`).
 
@@ -188,4 +189,6 @@ MyPy runs with `strict = true` and the Pydantic plugin over `src/`, `tests/`, an
 - Give public classes, functions, and ordinary methods a docstring. Prefer one line describing their overall purpose; do not repeat names, signatures, or type annotations. Ruff checks these in library code. Test functions, fixtures, and standard `dunder` methods are exempt.
 - Add docstrings to protected or private objects only when they explain behavior that is not clear from code.
 - Keep inline comments only for non-obvious behavior or decisions. Put a short comment on the relevant line when it fits; otherwise place it immediately above. Retain necessary tool directives such as `# noqa` and `# type: ignore`.
+- A comment placed above a line or group of lines applies only to it. Separate that line or group from the code before and after it with a blank line, unless it starts or ends a block, so the comment's scope is clear. At module and class level, give each commented constant or attribute its own block, and keep uncommented related definitions together in one block.
+- In long functions, methods, and tests, separate logical steps (input validation, setup, execution, result handling; arrange, act, assert) with a single blank line. Do not add comments to label the steps. Keep short functions compact.
 - Prefer clearer names and more precise types over comments that restate code.

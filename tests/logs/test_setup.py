@@ -37,7 +37,9 @@ def test_setup_logging_ignores_environment_when_called_without_arguments(
 def test_setup_logging_creates_log_dir(tmp_path: Path, clean_root_logger: logging.Logger) -> None:
     _ = clean_root_logger
     log_dir = tmp_path / "logs"
+
     setup_logging(LogSettings(dir=log_dir))
+
     assert log_dir.exists()
 
 
@@ -47,7 +49,9 @@ def test_setup_logging_does_not_add_duplicate_handlers(
     config = LogSettings(dir=tmp_path / "logs")
     setup_logging(config)
     count_after_first = len(_app_handlers(clean_root_logger))
+
     setup_logging(config)
+
     assert len(_app_handlers(clean_root_logger)) == count_after_first
 
 
@@ -153,6 +157,7 @@ def test_setup_logging_json_formatter(
     config = LogSettings(dir=tmp_path / "logs", format="json")
     setup_logging(config)
     clean_root_logger.warning("json event")
+
     event = json.loads((tmp_path / "logs" / config.file_name).read_text())
     assert event["event"] == "json event"
     assert json.loads(capsys.readouterr().err)["event"] == "json event"
@@ -162,10 +167,12 @@ def test_setup_logging_writes_exceptions_as_json_text(
     tmp_path: Path, clean_root_logger: logging.Logger
 ) -> None:
     setup_logging(LogSettings(dir=tmp_path))
+
     try:
         raise RuntimeError("boom")
     except RuntimeError:
         clean_root_logger.exception("failed")
+
     event = json.loads((tmp_path / "my-lib.log").read_text())
     assert "RuntimeError: boom" in event["exception"]
 
@@ -187,6 +194,7 @@ def test_library_records_reach_configured_handlers(
     _ = clean_root_logger
     setup_logging(LogSettings(format="json", level="DEBUG"))
     logging.getLogger("my_lib.core.example").debug("from library")
+
     event = json.loads(capsys.readouterr().err)
     assert event["event"] == "from library"
     assert event["logger"] == "my_lib.core.example"

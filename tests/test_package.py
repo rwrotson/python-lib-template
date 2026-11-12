@@ -19,10 +19,12 @@ def test_import_leaves_global_logging_unconfigured() -> None:
         "import logging, structlog, my_lib; "
         "print(len(logging.getLogger().handlers), structlog.is_configured())"
     )
+
     # Run in a fresh interpreter: this process already configured logging in other tests.
     result = subprocess.run(  # noqa: S603
         [sys.executable, "-c", code], capture_output=True, text=True, check=True
     )
+
     assert result.stdout.split() == ["0", "False"]
 
 
@@ -31,9 +33,11 @@ def test_import_does_not_load_optional_dependencies() -> None:
         "import sys, my_lib; "
         "print(*(name in sys.modules for name in ('structlog', 'pydantic_settings', 'typer')))"
     )
+
     result = subprocess.run(  # noqa: S603
         [sys.executable, "-c", code], capture_output=True, text=True, check=True
     )
+
     assert result.stdout.split() == ["False", "False", "False"]
 
 
@@ -44,8 +48,10 @@ def test_logs_package_reports_missing_extra() -> None:
         "try:\n    import my_lib.logs\n"
         "except ModuleNotFoundError as error:\n    print(error.name, error)"
     )
+
     result = subprocess.run(  # noqa: S603
         [sys.executable, "-c", code], capture_output=True, text=True, check=True
     )
+
     assert result.stdout.startswith("structlog ")
     assert "my-lib[logs]" in result.stdout

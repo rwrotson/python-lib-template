@@ -11,6 +11,7 @@ ENV_EXAMPLE = Path(__file__).parents[2] / ".env.example"
 
 def test_settings_use_code_defaults() -> None:
     settings = load_settings()
+
     assert settings.log.level == "INFO"
     assert settings.log.format == "console"
     assert settings.log.dir is None
@@ -54,6 +55,7 @@ def test_env_example_parses_to_defaults() -> None:
 def test_env_example_documents_every_setting() -> None:
     documented = set(re.findall(r"^#? ?(MY_LIB_[A-Z_]+)=", ENV_EXAMPLE.read_text(), re.MULTILINE))
     settings = {name for name, _ in env_fields()}
+
     assert settings - documented == set(), "add new settings to .env.example"
     assert documented - settings == set(), "remove stale settings from .env.example"
 
