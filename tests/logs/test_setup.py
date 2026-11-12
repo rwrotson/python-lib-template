@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from my_lib.config import LogSettings
-from my_lib.utils.log import _AppConsoleHandler, _AppFileHandler, setup_logging
+from my_lib.logs import LogSettings, setup_logging
+from my_lib.logs.setup import _AppConsoleHandler, _AppFileHandler
 
 _EXPECTED_HANDLER_COUNT = 2
 
@@ -22,14 +22,16 @@ def test_setup_logging_without_dir_logs_only_to_console(
     assert [type(h) for h in _app_handlers(clean_root_logger)] == [_AppConsoleHandler]
 
 
-def test_setup_logging_reads_settings_when_called_without_arguments(
+def test_setup_logging_ignores_environment_when_called_without_arguments(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, clean_root_logger: logging.Logger
 ) -> None:
     monkeypatch.setenv("MY_LIB_LOG__DIR", str(tmp_path))
     monkeypatch.setenv("MY_LIB_LOG__LEVEL", "ERROR")
+
     setup_logging()
-    assert clean_root_logger.level == logging.ERROR
-    assert (tmp_path / "my-lib.log").exists()
+
+    assert clean_root_logger.level == logging.INFO
+    assert not (tmp_path / "my-lib.log").exists()
 
 
 def test_setup_logging_creates_log_dir(tmp_path: Path, clean_root_logger: logging.Logger) -> None:

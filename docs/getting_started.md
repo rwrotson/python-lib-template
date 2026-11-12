@@ -30,13 +30,26 @@ from my_lib import InvalidInputError, greet
 greet("Ada")  # "Hello, Ada!"
 ```
 
+A base install (`pip install my-lib`) depends only on Pydantic. Optional extras add application features:
+
+| Extra | Adds |
+|-------|------|
+| `my-lib[logs]` | `my_lib.logs`: `LogSettings` and `setup_logging()` (structlog) |
+| `my-lib[cli]` | The `my-lib` command (Typer, Pydantic Settings) and the `logs` extra |
+
 Configure logging in the application, or use the bundled helper:
 
 ```python
-from my_lib.config import LogSettings
-from my_lib.utils.log import setup_logging
+from my_lib.logs import LogSettings, setup_logging
 
 setup_logging(LogSettings(level="DEBUG"))
+```
+
+The command runs the same API:
+
+```bash
+uv run my-lib greet Ada
+uv run my-lib --verbose greet Ada  # debug logs on stderr
 ```
 
 ## Development Commands
@@ -120,7 +133,7 @@ __all__ = ["InvalidInputError", "MyLibError", "greet", "slugify"]
 
 ## Configuration
 
-`load_settings()` and `setup_logging()` without arguments read environment variables or a `.env` file. Sections are nested with `__`:
+The `my-lib` command reads `MY_LIB_*` environment variables and a `.env` file in the working directory through `my_lib.cli.settings.load_settings()`; the library itself never reads them. Sections are nested with `__`:
 
 | Prefix | Controls |
 |--------|----------|

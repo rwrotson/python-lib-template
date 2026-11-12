@@ -4,7 +4,7 @@ This file describes repository conventions for coding agents.
 
 ## Project Overview
 
-A template for building typed Python libraries with a small public API, optional structlog-based logging setup for applications, and Pydantic Settings-based configuration.
+A template for building typed Python libraries with a small public API that depends only on Pydantic, an optional structlog-based logging setup for applications (`logs` extra), and an optional Typer command configured through Pydantic Settings (`cli` extra).
 
 Distribution name: `my-lib` | Python package: `my_lib` | Environment prefix: `MY_LIB_`
 
@@ -54,7 +54,7 @@ uv run --group docs properdocs build --strict
 
 ## Dependencies
 
-- Put runtime imports in `[project].dependencies`, development tools in the `dev` group, and documentation tools in the `docs` group.
+- Put runtime imports needed by the core in `[project].dependencies` and those of outer layers in their extra (`logs`, `cli`); also list extra packages in the `dev` group so tests can import them. Put development tools in the `dev` group and documentation tools in the `docs` group.
 - Keep runtime dependencies minimal and lower bounds wide enough for library consumers; they share one environment with the application.
 - Change dependencies through uv (`uv add`, `uv remove`) so `pyproject.toml` and `uv.lock` change together. Verify the lock with `uv sync --locked --all-groups`.
 - Raise a direct dependency's lower bound when code needs a newer API. The locked environment does not check lower bounds; the CI `lowest` job does.
@@ -70,7 +70,7 @@ uv run --group docs properdocs build --strict
 - Use non-rewriting checks (`poe fmt-check`, `poe lint`) for verification; run formatters or `--fix` only when intentionally editing files. Pre-commit's Ruff hooks rewrite files.
 - Report which checks ran, which were skipped, and why. `poe test-fast` is not the full CI suite: it skips coverage, and CI also runs tests on macOS, the lowest-dependency job, package and docs builds, and security scans.
 - Treat everything exported from `my_lib/__init__.py` as public API. Mark removals and incompatible changes with `!` or a `BREAKING CHANGE:` footer so Commitizen bumps the version correctly.
-- When changing settings or public API, update `.env.example`, README, and the docs. Do not edit generated pages (configuration, API reference); edit `Settings` field descriptions and source docstrings instead.
+- When changing settings, the public API, or the command, update `.env.example`, README, and the docs. Do not edit generated pages (configuration, API reference); edit `Settings` field descriptions and source docstrings instead.
 - Keep the user's `.env` and secrets untracked.
 
 ## CI/CD
@@ -81,8 +81,8 @@ Parallel jobs:
 
 - **`quality`** — `poe fmt-check`, `poe lint`, `poe lint-imports`, `poe typecheck`.
 - **`test`** — `poe test` (95% branch coverage) on Ubuntu and macOS.
-- **`lowest`** — installs the lowest allowed direct dependencies (`--resolution lowest-direct`)
-  and runs pytest; it checks the declared lower bounds, which the lock does not.
+- **`lowest`** — installs the lowest allowed direct dependencies with the `cli` extra
+  (`--resolution lowest-direct`) and runs pytest; it checks the declared lower bounds, which the lock does not.
 - **`build`** — `uv build`, `properdocs build --strict`, `poe audit`, trivy filesystem scan
   (CRITICAL/HIGH).
 
@@ -123,39 +123,40 @@ Internal imports use the `my_lib.` prefix. Ruff bans relative imports except in 
 
 ```python
 from my_lib.core.errors import InvalidInputError
-from my_lib.config import LogSettings
+from my_lib.logs import LogSettings
 ```
 
 ### Layers & Public API
 
 ```
 src/my_lib/__init__.py  — Public API re-exported with __all__; NullHandler on the "my_lib" logger
-src/my_lib/core/        — Library functionality and the MyLibError hierarchy
-src/my_lib/config/      — Settings (Pydantic Settings) for applications that configure the library
-src/my_lib/utils/       — Optional helpers: setup_logging(), find_project_root()
+src/my_lib/core/        — Library functionality and the MyLibError hierarchy (base install)
+src/my_lib/logs/        — LogSettings and opt-in setup_logging() for applications (`my-lib[logs]`)
+src/my_lib/cli/         — Typer app, its MY_LIB_* Settings, composition root (`my-lib[cli]`)
+src/my_lib/main.py      — `my-lib` console script; reports a missing `cli` extra
 ```
 
-Follow the layers in `docs/architecture.md`: `core` never imports `config`, `utils`, structlog, or Pydantic; `config` never imports `core` or `utils`; `utils` never imports `core`. import-linter contracts in `pyproject.toml` enforce the boundaries (`uv run poe lint-imports`).
+Follow the layers in `docs/architecture.md`. From top to bottom they are `main`, `cli`, `logs`, and `core`; a layer imports only layers below it. `main`, `cli`, and `logs` import library names only from `my_lib`, never from `my_lib.core` modules. The core uses only Pydantic among third-party packages; `logs` adds structlog, and `cli` adds Pydantic Settings and Typer. import-linter contracts in `pyproject.toml` enforce these rules (`uv run poe lint-imports`).
 
 Expected failures raise a `MyLibError` subclass. Subclass a built-in exception as well when callers would reasonably catch it (`InvalidInputError` is also a `ValueError`).
 
-To add functionality: put it in `src/my_lib/core/`, export it from `core/__init__.py` and `my_lib/__init__.py` (`__all__`), test it in `tests/core/`, and list it in `docs/reference/index.md`.
+To add functionality: put it in `src/my_lib/core/`, export it from `core/__init__.py` and `my_lib/__init__.py` (`__all__`), test it in `tests/core/`, and list it in `docs/reference/index.md`. To expose it on the command line, add a command in `src/my_lib/cli/app.py` and test it in `tests/cli/`.
 
 ### Import-Time Behaviour
 
-Importing `my_lib` must not read the environment or `.env`, configure logging or structlog, add handlers outside the `my_lib` logger, or perform I/O. `tests/test_package.py` checks this in a fresh interpreter.
+Importing `my_lib` must not read the environment or `.env`, configure logging or structlog, add handlers outside the `my_lib` logger, import optional dependencies, or perform I/O. `tests/test_package.py` checks this in a fresh interpreter.
 
-### Configuration via Environment Variables
+### CLI Configuration via Environment Variables
 
-`src/my_lib/config/settings.py` defines `Settings` (Pydantic `BaseSettings`, prefix `MY_LIB_`, nested delimiter `__`) with defaults in code and the section `LogSettings` (`MY_LIB_LOG__*`). Only `load_settings()` reads the environment and `.env`; empty values use defaults. Library code takes settings objects as arguments instead of loading them.
+`src/my_lib/cli/settings.py` defines the command's `Settings` (Pydantic `BaseSettings`, prefix `MY_LIB_`, nested delimiter `__`) from library models: `log` is `LogSettings` (`MY_LIB_LOG__*`). Only `load_settings()` in the CLI reads the environment and `.env`; empty values use defaults. Library code never reads the environment and takes settings objects as arguments.
 
-Every setting needs a `Field(description=...)` and a line in `.env.example`; tests in `tests/config/` enforce both. The docs configuration page is generated from `Settings` by `docs/gen_config_page.py`; do not edit it by hand.
+Every setting needs a `Field(description=...)` and a line in `.env.example`; tests in `tests/cli/test_settings.py` enforce both. The docs configuration page is generated from `Settings` by `docs/gen_config_page.py`; do not edit it by hand.
 
 ### Logging
 
 Library code logs through stdlib `logging.getLogger(__name__)` so records follow the application's configuration; the package logger has a `NullHandler`. Do not call `structlog.configure()` or `logging.basicConfig()` from library code.
 
-`setup_logging()` in `my_lib.utils.log` is an opt-in helper for applications. It configures structlog bridged through stdlib via `ProcessorFormatter`: a stderr handler (`ConsoleRenderer`, or JSON with `MY_LIB_LOG__FORMAT=json`) and, when `MY_LIB_LOG__DIR` is set, a rotating JSON file handler. Calling it again replaces only its own handlers.
+`setup_logging()` in `my_lib.logs` is an opt-in helper for applications. It configures structlog bridged through stdlib via `ProcessorFormatter`: a stderr handler (`ConsoleRenderer`, or JSON with `format="json"`) and, when `dir` is set, a rotating JSON file handler. Without arguments it uses `LogSettings` defaults. Calling it again replaces only its own handlers; if creating a handler fails, the previous configuration stays.
 
 ### Documentation Generation
 
@@ -163,7 +164,7 @@ Library code logs through stdlib `logging.getLogger(__name__)` so records follow
 
 ### Testing
 
-`tests/` mirrors the package (`core/`, `config/`, `utils/`); `tests/test_package.py` covers the public API and import-time behaviour.
+`tests/` mirrors the package (`core/`, `logs/`, `cli/`, `test_main.py`); `tests/test_package.py` covers the public API, import-time behaviour, and the missing-extra message.
 
 Tests run in parallel (pytest-xdist) and in random order (pytest-randomly); warnings are errors and each test has a 30-second timeout. Autouse fixtures in `tests/conftest.py` remove `MY_LIB_*` variables, run each test in a temporary working directory (so a local `.env` is not read), and restore logging and structlog configuration. pytest adds its own capture handlers to the root logger, so assert on the library's handlers only. Reproduce an order-dependent failure with `uv run pytest -p randomly --randomly-seed=<seed>`.
 

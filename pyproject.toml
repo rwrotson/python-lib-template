@@ -13,6 +13,7 @@ keywords = [
     "library",
     "structlog",
     "pydantic-settings",
+    "typer",
     "uv",
     "pytest",
     "ruff",
@@ -32,14 +33,25 @@ readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
     "pydantic>=2.12.0",
-    "pydantic-settings>=2.15.0",
-    "structlog>=26.1.0",
 ]
 
 [project.urls]
 Repository = "https://github.com/rwrotson/python-lib-template"
 Documentation = "https://rwrotson.github.io/python-lib-template"
 Changelog = "https://github.com/rwrotson/python-lib-template/blob/main/CHANGELOG.md"
+
+[project.scripts]
+my-lib = "my_lib.main:main"
+
+[project.optional-dependencies]
+logs = [
+    "structlog>=26.1.0",
+]
+cli = [
+    "my-lib[logs]",
+    "pydantic-settings>=2.15.0",
+    "typer>=0.27.3",
+]
 
 [dependency-groups]
 dev = [
@@ -48,12 +60,15 @@ dev = [
     "mypy>=2.4.0",
     "poethepoet>=0.48.0",
     "pre-commit>=4.6.2",
+    "pydantic-settings>=2.15.0",
     "pytest>=9.1.1",
     "pytest-cov>=7.1.0",
     "pytest-randomly>=5.0.0",
     "pytest-timeout>=2.4.0",
     "pytest-xdist>=3.8.0",
     "ruff>=0.16.10",
+    "structlog>=26.1.0",
+    "typer>=0.27.3",
 ]
 docs = [
     "mkdocs-gen-files>=0.6.1",
@@ -225,24 +240,29 @@ root_package = "my_lib"
 include_external_packages = true
 
 [[tool.importlinter.contracts]]
-name = "Core API stays independent of configuration and logging setup"
+name = "Package layers"
+type = "layers"
+layers = ["my_lib.main", "my_lib.cli", "my_lib.logs", "my_lib.core"]
+
+[[tool.importlinter.contracts]]
+name = "Applications use the core only through the my_lib public API"
+type = "forbidden"
+source_modules = ["my_lib.main", "my_lib.cli", "my_lib.logs"]
+forbidden_modules = ["my_lib.core"]
+# The my_lib package itself re-exports the core.
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "The core uses only Pydantic among third-party packages"
 type = "forbidden"
 source_modules = ["my_lib.core"]
-forbidden_modules = [
-    "structlog", "pydantic", "pydantic_settings", "my_lib.config", "my_lib.utils",
-]
+forbidden_modules = ["structlog", "pydantic_settings", "typer"]
 
 [[tool.importlinter.contracts]]
-name = "Configuration has no library dependencies"
+name = "Logging setup does not use settings loading or CLI packages"
 type = "forbidden"
-source_modules = ["my_lib.config"]
-forbidden_modules = ["structlog", "my_lib.core", "my_lib.utils"]
-
-[[tool.importlinter.contracts]]
-name = "Utilities do not depend on the core API"
-type = "forbidden"
-source_modules = ["my_lib.utils"]
-forbidden_modules = ["my_lib.core"]
+source_modules = ["my_lib.logs"]
+forbidden_modules = ["pydantic_settings", "typer"]
 
 
 # POETHEPOET -------------------------------------------------------------------

@@ -14,11 +14,11 @@ The wheel includes `py.typed`, so type checkers use the package's inline annotat
 
 ## structlog Integration
 
-`my_lib.utils.log.setup_logging()` connects [structlog](https://www.structlog.org/) to stdlib logging through `ProcessorFormatter`:
+`my_lib.logs.setup_logging()` (the `logs` extra) connects [structlog](https://www.structlog.org/) to stdlib logging through `ProcessorFormatter`:
 
 - Library modules use stdlib loggers; their records and structlog events share the same handlers.
-- Console logs use colourised `ConsoleRenderer` output or JSON when `MY_LIB_LOG__FORMAT=json`.
-- File logs use JSON and are written only when `MY_LIB_LOG__DIR` is set.
+- Console logs use colourised `ConsoleRenderer` output or JSON with `LogSettings(format="json")` (`MY_LIB_LOG__FORMAT=json` for the command).
+- File logs use JSON and are written only when `LogSettings.dir` (`MY_LIB_LOG__DIR`) is set.
 - Timestamps are ISO 8601 in UTC.
 - `structlog.contextvars.bind_contextvars()` adds fields to subsequent logs in the current context.
 
@@ -60,9 +60,12 @@ name is free on PyPI.
    `[tool.uv.build-backend]`, `[tool.coverage.run].source`,
    `[tool.ruff.lint.isort].known-first-party`, and `[tool.importlinter]` in `pyproject.toml`.
 2. Set `[project].name`, the description, authors, keywords, and `[project.urls]` in
-   `pyproject.toml`. Rename `MyLibError` if the name should match the package.
+   `pyproject.toml`. Replace every `my-lib` in `pyproject.toml`, `src/`, `tests/`, and
+   `docs/gen_config_page.py`: the self-reference `my-lib[logs]` in the `cli` extra, the command
+   name in `[project.scripts]`, `version("my-lib")` and the help text in the CLI, and the extra
+   names in the error messages of `logs/__init__.py` and `main.py`. Rename `MyLibError` if the name should match the package.
 3. Change `env_prefix` and the `env_fields()` default prefix in
-   `src/my_package/config/settings.py`, and `PREFIX` in `docs/gen_config_page.py`. Adjust the
+   `src/my_package/cli/settings.py`, and `PREFIX` in `docs/gen_config_page.py`. Adjust the
    default log file name in `LogSettings`. Update `.env.example`, README examples, and tests
    using `MY_LIB_` variables.
 4. Update `properdocs.yml` (`site_name`, `site_url`, repository links, `edit_uri` if the default

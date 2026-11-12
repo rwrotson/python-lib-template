@@ -5,7 +5,7 @@ from typing import TextIO
 
 import structlog
 
-from my_lib.config import LogSettings, load_settings
+from my_lib.logs.settings import LogSettings
 
 
 class _AppFileHandler(logging.handlers.RotatingFileHandler):
@@ -55,7 +55,7 @@ def _prepare_handlers(
 def setup_logging(config: LogSettings | None = None) -> None:
     """Configure structlog and stdlib handlers for an application that uses the library."""
     if config is None:
-        config = load_settings().log
+        config = LogSettings()
 
     shared_processors: list[structlog.types.Processor] = [
         structlog.contextvars.merge_contextvars,
