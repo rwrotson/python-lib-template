@@ -44,9 +44,9 @@ The `commit-msg` hook checks Conventional Commit format.
 
 ## Publishing
 
-In a project created from this template, the release workflow publishes version tags to PyPI with [Trusted Publishing](https://docs.pypi.org/trusted-publishers/). On PyPI, add a trusted publisher with the repository owner and name, workflow `release.yml`, and environment `pypi`; for a project that does not exist on PyPI yet, add it as a pending publisher. Create the `pypi` environment in the GitHub repository settings, optionally with required reviewers.
+The release workflow publishes version tags to PyPI with [Trusted Publishing](https://docs.pypi.org/trusted-publishers/) only when the repository variable `PUBLISH_TO_PYPI` is `true` (Settings → Secrets and variables → Actions → Variables). Without it, a release builds the package and deploys documentation; install a tagged version from GitHub instead. To publish, on PyPI add a trusted publisher with the repository owner and name, workflow `release.yml`, and environment `pypi`; for a project that does not exist on PyPI yet, add it as a pending publisher. Create the `pypi` environment in the GitHub repository settings, optionally with required reviewers.
 
-The `publish` job is skipped when the workflow runs in `rwrotson/python-lib-template`, so release tags of the template deploy documentation only. The condition compares the repository name and needs no change after copying.
+The template repository does not set the variable, so its release tags deploy documentation only.
 
 ## Renaming the Template
 
@@ -72,6 +72,7 @@ name is free on PyPI.
    branch is not `main`, and the source watch path). Update names and links in README, docs,
    `AGENTS.md`, the copyright holder in `LICENSE`, and the PyPI URL in
    `.github/workflows/release.yml`.
-5. Configure the PyPI trusted publisher and GitHub Pages as described above.
+5. Configure GitHub Pages and, to publish to PyPI, the trusted publisher and the `PUBLISH_TO_PYPI`
+   variable as described above.
 6. Regenerate the lockfile with `uv lock`, then run `uv sync --all-groups --locked`,
    `uv run poe check`, `uv build`, and `uv run --group docs properdocs build --strict`.

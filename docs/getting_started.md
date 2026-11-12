@@ -91,7 +91,7 @@ uv run cz changelog       # update CHANGELOG without bumping
 uv run cz changelog --dry-run
 ```
 
-Bump type is inferred from commits: `fix:` → patch · `feat:` → minor · `feat!:` / `BREAKING CHANGE:` → major (minor while the version is `0.x`). `cz bump` creates the tag locally; pushing it runs the release workflow, which publishes to PyPI and deploys the docs.
+Bump type is inferred from commits: `fix:` → patch · `feat:` → minor · `feat!:` / `BREAKING CHANGE:` → major (minor while the version is `0.x`). `cz bump` creates the tag locally; pushing it runs the release workflow, which deploys the docs and, when `PUBLISH_TO_PYPI` is enabled, publishes to PyPI.
 
 ## Adding Functionality
 

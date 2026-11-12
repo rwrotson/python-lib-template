@@ -61,6 +61,21 @@ jobs:
           enable-cache: true
       - run: uv sync --locked --all-groups
       - run: uv build
+      - name: Smoke-test the wheel
+        run: |
+          wheel="$(ls dist/*.whl)"
+          # grep -q would exit early and fail unzip with SIGPIPE under pipefail.
+          unzip -l "$wheel" | grep 'my_lib/py.typed'
+          # A base install imports the library from site-packages without optional dependencies.
+          uv run --isolated --no-project --with "$wheel" python -c \
+            "import sys, my_lib; assert 'site-packages' in my_lib.__file__; assert 'structlog' not in sys.modules"
+          # The console script exists in a base install and names the missing extra.
+          status=0
+          output="$(uv run --isolated --no-project --with "$wheel" my-lib 2>&1)" || status=$?
+          echo "$output"
+          [ "$status" -eq 1 ]
+          grep -qF "my-lib[cli]" <<< "$output"
+          uv run --isolated --no-project --with "my-lib[cli] @ file://$PWD/$wheel" my-lib greet Ada
       - run: uv run --no-sync properdocs build --strict
       - run: uv run --no-sync poe audit
       - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0

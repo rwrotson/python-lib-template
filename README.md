@@ -155,7 +155,7 @@ tests/                       # mirrors the package; test_package.py checks impor
 | `quality` | ruff format check, ruff lint, import-linter contracts, strict mypy |
 | `test` | parallel tests in random order on Ubuntu and macOS, 95% branch coverage enforced |
 | `lowest` | tests against the lowest allowed direct dependencies, with all extras |
-| `build` | package build, `properdocs build --strict`, pip-audit, trivy filesystem scan (CRITICAL/HIGH) |
+| `build` | package build and wheel smoke test (with and without extras), `properdocs build --strict`, pip-audit, trivy filesystem scan (CRITICAL/HIGH) |
 
 Dependabot opens weekly grouped PRs for uv dependencies, GitHub Actions, and pre-commit hooks.
 
@@ -164,10 +164,10 @@ Dependabot opens weekly grouped PRs for uv dependencies, GitHub Actions, and pre
 | Job | What it does |
 |-----|-------------|
 | `build` | checks that the tag matches the project version, builds the sdist and wheel |
-| `publish` | publishes to PyPI with Trusted Publishing (tags only; skipped in the template repository) |
+| `publish` | publishes to PyPI with Trusted Publishing (tags only, when the `PUBLISH_TO_PYPI` variable is `true`) |
 | `docs` | builds the docs with ProperDocs and deploys it to GitHub Pages via GitHub Actions |
 
-In a project created from this template, configure a trusted publisher on PyPI with workflow `release.yml` and environment `pypi`. Set Pages Source to **GitHub Actions** and allow `v*` tags in the `github-pages` environment.
+To publish a project created from this template, set the repository variable `PUBLISH_TO_PYPI=true` and configure a trusted publisher on PyPI with workflow `release.yml` and environment `pypi`. Set Pages Source to **GitHub Actions** and allow `v*` tags in the `github-pages` environment.
 
 ## Using This Template
 

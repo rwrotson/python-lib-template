@@ -33,11 +33,11 @@ jobs:
           path: dist/
           if-no-files-found: error
 
-  # Manual runs deploy docs only; packages are published from version tags.
-  # The template repository itself never publishes; copies of it do.
+  # Packages are published from version tags only when the repository variable
+  # PUBLISH_TO_PYPI is "true"; otherwise releases build the package and deploy docs.
   publish:
     needs: build
-    if: startsWith(github.ref, 'refs/tags/v') && github.repository != 'rwrotson/python-lib-template'
+    if: startsWith(github.ref, 'refs/tags/v') && vars.PUBLISH_TO_PYPI == 'true'
     runs-on: ubuntu-latest
     permissions:
       id-token: write
