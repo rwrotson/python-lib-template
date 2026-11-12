@@ -119,6 +119,29 @@ def test_setup_logging_json_formatter(
     assert json.loads(capsys.readouterr().err)["event"] == "json event"
 
 
+def test_setup_logging_writes_exceptions_as_json_text(
+    tmp_path: Path, clean_root_logger: logging.Logger
+) -> None:
+    setup_logging(LogSettings(dir=tmp_path))
+    try:
+        raise RuntimeError("boom")
+    except RuntimeError:
+        clean_root_logger.exception("failed")
+    event = json.loads((tmp_path / "my-lib.log").read_text())
+    assert "RuntimeError: boom" in event["exception"]
+
+
+def test_setup_logging_renders_exceptions_on_console(
+    clean_root_logger: logging.Logger, capsys: pytest.CaptureFixture[str]
+) -> None:
+    setup_logging(LogSettings())
+    try:
+        raise RuntimeError("boom")
+    except RuntimeError:
+        clean_root_logger.exception("failed")
+    assert "boom" in capsys.readouterr().err
+
+
 def test_library_records_reach_configured_handlers(
     clean_root_logger: logging.Logger, capsys: pytest.CaptureFixture[str]
 ) -> None:

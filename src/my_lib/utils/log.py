@@ -27,19 +27,19 @@ def setup_logging(config: LogSettings | None = None) -> None:
         structlog.stdlib.add_logger_name,
         structlog.processors.TimeStamper(fmt="iso", utc=True),
         structlog.processors.StackInfoRenderer(),
-        structlog.processors.format_exc_info,
     ]
-
-    console_renderer: structlog.types.Processor = (
-        structlog.processors.JSONRenderer()
-        if config.format == "json"
-        else structlog.dev.ConsoleRenderer()
-    )
+    # Only JSON output formats exceptions as text; ConsoleRenderer renders exc_info itself.
+    json_processors: list[structlog.types.Processor] = [
+        structlog.stdlib.ProcessorFormatter.remove_processors_meta,
+        structlog.processors.format_exc_info,
+        structlog.processors.JSONRenderer(),
+    ]
+    console_processors: list[structlog.types.Processor] = [
+        structlog.stdlib.ProcessorFormatter.remove_processors_meta,
+        structlog.dev.ConsoleRenderer(),
+    ]
     console_formatter = structlog.stdlib.ProcessorFormatter(
-        processors=[
-            structlog.stdlib.ProcessorFormatter.remove_processors_meta,
-            console_renderer,
-        ],
+        processors=json_processors if config.format == "json" else console_processors,
         foreign_pre_chain=shared_processors,
     )
 
@@ -67,11 +67,7 @@ def setup_logging(config: LogSettings | None = None) -> None:
         fh.setLevel(config.file_level)
         fh.setFormatter(
             structlog.stdlib.ProcessorFormatter(
-                processors=[
-                    structlog.stdlib.ProcessorFormatter.remove_processors_meta,
-                    structlog.processors.JSONRenderer(),
-                ],
-                foreign_pre_chain=shared_processors,
+                processors=json_processors, foreign_pre_chain=shared_processors
             )
         )
         root_logger.addHandler(fh)

@@ -1,12 +1,10 @@
 from pathlib import Path
 
 
-def find_project_root(marker: str = "pyproject.toml") -> Path:
-    """Find the project root by searching upwards for a marker."""
-    current_path = Path(__file__).resolve()
-    while current_path != current_path.parent:
-        if (current_path / marker).exists():
-            return current_path
-        current_path = current_path.parent
-
-    return Path(__file__).parent.resolve()
+def find_project_root(marker: str = "pyproject.toml", start: Path | None = None) -> Path:
+    """Find the nearest directory at or above `start` (the working directory) with a marker."""
+    origin = (start or Path.cwd()).resolve()
+    for directory in (origin, *origin.parents):
+        if (directory / marker).exists():
+            return directory
+    raise FileNotFoundError(f"no {marker} found at or above {origin}")
