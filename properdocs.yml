@@ -1,7 +1,9 @@
 site_name: python-lib-template
+site_url: https://rwrotson.github.io/python-lib-template/
 site_description: A template for building typed Python libraries with optional structured logging setup
 repo_url: https://github.com/rwrotson/python-lib-template
 repo_name: rwrotson/python-lib-template
+edit_uri: edit/main/docs/
 
 watch:
   - src/my_lib/
@@ -40,11 +42,11 @@ theme:
     - search.suggest
     - search.highlight
     - content.code.copy
+    - content.action.edit
     - content.code.annotate
 
 plugins:
   - search
-  - tags
   - minify:
       minify_html: true
       minify_js: true
