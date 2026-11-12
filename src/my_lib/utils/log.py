@@ -16,6 +16,42 @@ class _AppConsoleHandler(logging.StreamHandler[TextIO]):
     """Mark console handlers for replacement when logging is reconfigured."""
 
 
+def _prepare_handlers(
+    config: LogSettings,
+    console_formatter: logging.Formatter,
+    json_processors: list[structlog.types.Processor],
+    shared_processors: list[structlog.types.Processor],
+) -> list[logging.Handler]:
+    """Create all handlers before touching the root logger, closing them if one fails."""
+    handlers: list[logging.Handler] = []
+    try:
+        sh = _AppConsoleHandler(sys.stderr)
+        sh.setLevel(config.console_level)
+        sh.setFormatter(console_formatter)
+        handlers.append(sh)
+
+        if config.dir is not None:
+            logs_dir_path = config.dir.resolve()
+            logs_dir_path.mkdir(parents=True, exist_ok=True)
+            fh = _AppFileHandler(
+                filename=logs_dir_path / config.file_name,
+                maxBytes=config.file_max_bytes,
+                backupCount=config.file_backup_count,
+            )
+            fh.setLevel(config.file_level)
+            fh.setFormatter(
+                structlog.stdlib.ProcessorFormatter(
+                    processors=json_processors, foreign_pre_chain=shared_processors
+                )
+            )
+            handlers.append(fh)
+    except Exception:
+        for handler in handlers:
+            handler.close()
+        raise
+    return handlers
+
+
 def setup_logging(config: LogSettings | None = None) -> None:
     """Configure structlog and stdlib handlers for an application that uses the library."""
     if config is None:
@@ -43,34 +79,16 @@ def setup_logging(config: LogSettings | None = None) -> None:
         foreign_pre_chain=shared_processors,
     )
 
-    root_logger = logging.getLogger()
-    root_logger.setLevel(config.level)
+    handlers = _prepare_handlers(config, console_formatter, json_processors, shared_processors)
 
+    root_logger = logging.getLogger()
     for handler in root_logger.handlers[:]:
         if isinstance(handler, (_AppFileHandler, _AppConsoleHandler)):
             root_logger.removeHandler(handler)
             handler.close()
-
-    sh = _AppConsoleHandler(sys.stderr)
-    sh.setLevel(config.console_level)
-    sh.setFormatter(console_formatter)
-    root_logger.addHandler(sh)
-
-    if config.dir is not None:
-        logs_dir_path = config.dir.resolve()
-        logs_dir_path.mkdir(parents=True, exist_ok=True)
-        fh = _AppFileHandler(
-            filename=logs_dir_path / config.file_name,
-            maxBytes=config.file_max_bytes,
-            backupCount=config.file_backup_count,
-        )
-        fh.setLevel(config.file_level)
-        fh.setFormatter(
-            structlog.stdlib.ProcessorFormatter(
-                processors=json_processors, foreign_pre_chain=shared_processors
-            )
-        )
-        root_logger.addHandler(fh)
+    for handler in handlers:
+        root_logger.addHandler(handler)
+    root_logger.setLevel(config.level)
 
     structlog.configure(
         processors=[*shared_processors, structlog.stdlib.ProcessorFormatter.wrap_for_formatter],

@@ -103,6 +103,43 @@ def test_setup_logging_replaces_own_handlers_on_reconfiguration(
     assert event["event"] == "reconfigured"
 
 
+def test_setup_logging_failed_reconfiguration_keeps_previous_handlers(
+    tmp_path: Path, clean_root_logger: logging.Logger
+) -> None:
+    setup_logging(LogSettings(dir=tmp_path / "working", level="WARNING"))
+    previous_handlers = _app_handlers(clean_root_logger)
+    occupied = tmp_path / "occupied"
+    occupied.write_text("not a directory")
+
+    with pytest.raises(FileExistsError):
+        setup_logging(LogSettings(dir=occupied, level="DEBUG"))
+
+    assert _app_handlers(clean_root_logger) == previous_handlers
+    assert clean_root_logger.level == logging.WARNING
+    clean_root_logger.error("still active")
+    event = json.loads((tmp_path / "working" / "my-lib.log").read_text())
+    assert event["event"] == "still active"
+
+
+def test_setup_logging_closes_prepared_handlers_on_failure(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, clean_root_logger: logging.Logger
+) -> None:
+    closed: list[logging.Handler] = []
+
+    def record_close(handler: logging.Handler) -> None:
+        closed.append(handler)
+
+    monkeypatch.setattr(_AppConsoleHandler, "close", record_close)
+    occupied = tmp_path / "occupied"
+    occupied.write_text("not a directory")
+
+    with pytest.raises(FileExistsError):
+        setup_logging(LogSettings(dir=occupied))
+
+    assert [type(handler) for handler in closed] == [_AppConsoleHandler]
+    assert _app_handlers(clean_root_logger) == []
+
+
 def test_setup_logging_sets_root_level(tmp_path: Path, clean_root_logger: logging.Logger) -> None:
     setup_logging(LogSettings(dir=tmp_path / "logs", level="WARNING"))
     assert clean_root_logger.level == logging.WARNING
