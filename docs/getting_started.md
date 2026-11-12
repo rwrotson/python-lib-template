@@ -73,11 +73,12 @@ Commit messages follow [Conventional Commits](https://www.conventionalcommits.or
 
 ```bash
 uv run cz bump            # bump version, update CHANGELOG, create tag
+git push origin main --tags
 uv run cz changelog       # update CHANGELOG without bumping
 uv run cz changelog --dry-run
 ```
 
-Bump type is inferred from commits: `fix:` → patch · `feat:` → minor · `feat!:` / `BREAKING CHANGE:` → major (minor while the version is `0.x`). Pushing the tag runs the release workflow, which publishes to PyPI and deploys the docs.
+Bump type is inferred from commits: `fix:` → patch · `feat:` → minor · `feat!:` / `BREAKING CHANGE:` → major (minor while the version is `0.x`). `cz bump` creates the tag locally; pushing it runs the release workflow, which publishes to PyPI and deploys the docs.
 
 ## Adding Functionality
 
@@ -97,7 +98,17 @@ def slugify(text: str) -> str:
     return "-".join(words)
 ```
 
-2. Export it from `src/my_lib/core/__init__.py` and `src/my_lib/__init__.py`:
+2. Export it from `src/my_lib/core/__init__.py`:
+
+```python
+from .errors import InvalidInputError, MyLibError
+from .example import greet
+from .slug import slugify
+
+__all__ = ["InvalidInputError", "MyLibError", "greet", "slugify"]
+```
+
+   and from `src/my_lib/__init__.py`:
 
 ```python
 from .core import InvalidInputError, MyLibError, greet, slugify

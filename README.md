@@ -85,7 +85,7 @@ uv build
 
 ```bash
 uv run --group docs properdocs serve
-uv run --group docs properdocs build
+uv run --group docs properdocs build --strict
 ```
 
 Source is in `docs/`. ProperDocs generates the API reference from public docstrings. The release workflow deploys the site to GitHub Pages.
@@ -96,11 +96,12 @@ This template uses [Conventional Commits](https://www.conventionalcommits.org/) 
 
 ```bash
 uv run cz bump
+git push origin main --tags
 
 uv run cz changelog --dry-run
 ```
 
-Bump type is inferred automatically: `fix:` → patch, `feat:` → minor, `feat!:` / `BREAKING CHANGE` → major (minor while the version is `0.x`).
+Bump type is inferred automatically: `fix:` → patch, `feat:` → minor, `feat!:` / `BREAKING CHANGE` → major (minor while the version is `0.x`). `cz bump` creates the tag locally; pushing it starts the release workflow.
 
 ## Configuration
 

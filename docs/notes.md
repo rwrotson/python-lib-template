@@ -54,8 +54,9 @@ Choose three names before editing: a distribution name (for example, `my-package
 package (`my_package`), and an environment prefix (`MY_PACKAGE_`). Check that the distribution
 name is free on PyPI.
 
-1. Rename `src/my_lib/` to `src/my_package/`. Replace `my_lib` in imports throughout `src/`,
-   `tests/`, and `docs/`, including logger names in tests. Update `module-name` under
+1. Rename `src/my_lib/` to `src/my_package/`. Replace every `my_lib` throughout `src/`,
+   `tests/`, and `docs/`: imports, logger names in tests, and paths and text in
+   `docs/gen_ref_pages.py` and `docs/gen_config_page.py`. Update `module-name` under
    `[tool.uv.build-backend]`, `[tool.coverage.run].source`,
    `[tool.ruff.lint.isort].known-first-party`, and `[tool.importlinter]` in `pyproject.toml`.
 2. Set `[project].name`, the description, authors, keywords, and `[project.urls]` in
@@ -64,9 +65,10 @@ name is free on PyPI.
    `src/my_package/config/settings.py`, and `PREFIX` in `docs/gen_config_page.py`. Adjust the
    default log file name in `LogSettings`. Update `.env.example`, README examples, and tests
    using `MY_LIB_` variables.
-4. Update `properdocs.yml` (`site_name`, repository links, and the source watch path) and
-   `docs/gen_ref_pages.py`, which scans the import package for API pages. Update names and
-   links in README, docs, `AGENTS.md`, and the PyPI URL in `.github/workflows/release.yml`.
+4. Update `properdocs.yml` (`site_name`, `site_url`, repository links, `edit_uri` if the default
+   branch is not `main`, and the source watch path). Update names and links in README, docs,
+   `AGENTS.md`, the copyright holder in `LICENSE`, and the PyPI URL in
+   `.github/workflows/release.yml`.
 5. Configure the PyPI trusted publisher and GitHub Pages as described above.
 6. Regenerate the lockfile with `uv lock`, then run `uv sync --all-groups --locked`,
    `uv run poe check`, `uv build`, and `uv run --group docs properdocs build --strict`.

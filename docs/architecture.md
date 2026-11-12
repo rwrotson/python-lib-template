@@ -13,7 +13,7 @@ import-linter checks these boundaries with `uv run poe lint-imports`; the contra
 
 ## Public API
 
-Everything listed in `my_lib.__all__` is public and follows semantic versioning. Other modules can be imported but are not covered by compatibility guarantees, except `my_lib.config` and `my_lib.utils.log`, which applications use for setup. A removal or incompatible change to the public API is a breaking change (`feat!:` or a `BREAKING CHANGE:` footer).
+Everything listed in `my_lib.__all__` is public and follows semantic versioning. Other modules can be imported but are not covered by compatibility guarantees, except `my_lib.config`, `my_lib.utils.log`, and `my_lib.utils.misc`, which applications use for setup. A removal or incompatible change to the public API is a breaking change (`feat!:` or a `BREAKING CHANGE:` footer).
 
 ## Import-time behaviour
 
