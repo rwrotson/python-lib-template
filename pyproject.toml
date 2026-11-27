@@ -255,7 +255,7 @@ layers = ["my_lib.main", "my_lib.cli", "my_lib.logs", "my_lib.core"]
 name = "Core modules layers"
 type = "layers"
 containers = ["my_lib.core"]
-layers = ["example", "errors"]
+layers = ["example", "errors | log_fields"]
 exhaustive = true
 
 [[tool.importlinter.contracts]]

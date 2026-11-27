@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from my_lib import LOG_FIELDS, greet
 from my_lib.logs import FILE_ONLY, LogSettings, setup_logging
 from my_lib.logs.setup import _AppConsoleHandler, _AppFileHandler, _AppNullHandler
 
@@ -215,6 +216,35 @@ def test_library_records_reach_configured_handlers(
     event = json.loads(capsys.readouterr().err)
     assert event["event"] == "from library"
     assert event["logger"] == "my_lib.core.example"
+
+
+def test_library_record_fields_reach_console_and_file(
+    tmp_path: Path,
+    clean_root_logger: logging.Logger,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    _ = clean_root_logger
+    setup_logging(LogSettings(dir=tmp_path, format="json", level="DEBUG", file_level="DEBUG"))
+
+    greet("Ada")
+
+    console_event = json.loads(capsys.readouterr().err)
+    file_event = json.loads((tmp_path / "my-lib.log").read_text())
+    for event in (console_event, file_event):
+        assert (event["event"], event["name"]) == ("greeting", "Ada")
+        assert LOG_FIELDS not in event
+
+
+def test_library_record_fields_do_not_replace_event_keys(
+    clean_root_logger: logging.Logger,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    setup_logging(LogSettings(format="json"))
+
+    clean_root_logger.warning("kept", extra={LOG_FIELDS: {"event": "replaced", "count": 1}})
+
+    event = json.loads(capsys.readouterr().err)
+    assert (event["event"], event["count"]) == ("kept", 1)
 
 
 def test_setup_logging_without_console_prints_nothing(

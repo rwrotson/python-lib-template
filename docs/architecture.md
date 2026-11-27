@@ -42,6 +42,8 @@ A heavy layer can be re-exported lazily through a module `__getattr__` with `TYP
 
 Library modules log through `logging.getLogger(__name__)`. The `NullHandler` on `my_lib` keeps records silent until the application configures logging, and records then follow the application's levels and handlers.
 
+Structured fields go in one record attribute, `extra={LOG_FIELDS: {...}}` (`my_lib.LOG_FIELDS`), so they do not collide with `LogRecord` attributes or the application's own `extra` keys.
+
 `my_lib.logs.setup_logging()` is a helper for applications that do not have their own setup:
 
 1. Without arguments it uses the `LogSettings` defaults; it never reads the environment.
@@ -49,6 +51,7 @@ Library modules log through `logging.getLogger(__name__)`. The `NullHandler` on 
 3. It replaces the handlers it created before and keeps all others.
 4. It adds a stderr handler (console or JSON) and, when a log directory is set, a rotating JSON file handler. With `console=False` it adds a no-op handler instead of the stderr handler, so `logging.lastResort` does not print either.
 5. It configures structlog to render through the same stdlib handlers, so structlog and stdlib records share one format.
+6. It adds the `LOG_FIELDS` fields of stdlib records to the rendered event; keys the event already has win.
 
 A record logged with `extra=FILE_ONLY` skips the console handler and still reaches the file handler; an application uses it for errors it prints itself.
 

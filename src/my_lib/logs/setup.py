@@ -1,11 +1,13 @@
 import logging
 import logging.handlers
 import sys
+from collections.abc import Mapping
 from types import MappingProxyType
 from typing import TextIO
 
 import structlog
 
+from my_lib import LOG_FIELDS
 from my_lib.logs.settings import LogSettings
 
 # Pass as ``extra`` to keep a record out of the console when the application reports it itself.
@@ -26,6 +28,19 @@ class _AppNullHandler(logging.NullHandler):
 
 def _console_record(record: logging.LogRecord) -> bool:
     return getattr(record, "console", True) is not False
+
+
+def _add_record_fields(
+    _logger: structlog.types.WrappedLogger,
+    _method: str,
+    event_dict: structlog.types.EventDict,
+) -> structlog.types.EventDict:
+    """Copy the ``extra={LOG_FIELDS: ...}`` fields of a stdlib record; event keys win."""
+    fields = getattr(event_dict.get("_record"), LOG_FIELDS, None)
+    if isinstance(fields, Mapping):
+        for key, value in fields.items():
+            event_dict.setdefault(key, value)
+    return event_dict
 
 
 def _prepare_handlers(
@@ -81,6 +96,7 @@ def setup_logging(config: LogSettings | None = None, *, console: bool = True) ->
         structlog.stdlib.add_logger_name,
         structlog.processors.TimeStamper(fmt="iso", utc=True),
         structlog.processors.StackInfoRenderer(),
+        _add_record_fields,
     ]
 
     # Only JSON output formats exceptions as text; ConsoleRenderer renders exc_info itself.

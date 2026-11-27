@@ -16,7 +16,7 @@ The wheel includes `py.typed`, so type checkers use the package's inline annotat
 
 `my_lib.logs.setup_logging()` (the `logs` extra) connects [structlog](https://www.structlog.org/) to stdlib logging through `ProcessorFormatter`:
 
-- Library modules use stdlib loggers; their records and structlog events share the same handlers.
+- Library modules use stdlib loggers; their records and structlog events share the same handlers. Fields passed as `extra={LOG_FIELDS: {...}}` appear in the rendered event.
 - Console logs use colourised `ConsoleRenderer` output or JSON with `LogSettings(format="json")` (`MY_LIB_LOG__FORMAT=json` for the command).
 - `setup_logging(console=False)` disables console output; `extra=FILE_ONLY` keeps a single record out of the console.
 - File logs use JSON and are written only when `LogSettings.dir` (`MY_LIB_LOG__DIR`) is set.

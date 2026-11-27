@@ -6,6 +6,7 @@ The pages below are generated from public objects in `src/my_lib/`. Names export
 |--------|---------|
 | `my_lib.core.errors` | Define the library error hierarchy |
 | `my_lib.core.example` | Build a greeting as an example API |
+| `my_lib.core.log_fields` | Name the record attribute for structured log fields |
 | `my_lib.logs.settings` | Define logging settings |
 | `my_lib.logs.setup` | Configure console and file logging for applications |
 | `my_lib.cli.settings` | Load command settings from the environment |
