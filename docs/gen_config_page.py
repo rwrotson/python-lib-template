@@ -1,6 +1,8 @@
 import html
 import json
+import re
 from collections.abc import Iterator
+from typing import TypeAliasType
 
 import mkdocs_gen_files
 from pydantic.fields import FieldInfo
@@ -12,8 +14,12 @@ PREFIX = "MY_LIB_"
 
 def type_name(field: FieldInfo) -> str:
     """Format a field type for a Markdown table cell."""
-    name = str(field.annotation).replace("typing.", "").replace("pathlib.", "")
-    name = name.replace("_local.", "").replace("<class '", "").replace("'>", "")
+    annotation = field.annotation
+    if isinstance(annotation, TypeAliasType):
+        annotation = annotation.__value__
+
+    name = str(annotation).replace("<class '", "").replace("'>", "")
+    name = re.sub(r"\b(?:[a-z_]+\.)+([A-Za-z_]\w*)", r"\1", name)
 
     # A backslash-escaped pipe stays visible inside a code span, so use an HTML entity.
     return f"<code>{html.escape(name).replace('|', '&#124;')}</code>"
