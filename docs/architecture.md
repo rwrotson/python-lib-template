@@ -61,7 +61,7 @@ The `my-lib` command calls it with `LogSettings` loaded from `MY_LIB_LOG__*`.
 | `MyLibError` | `Exception` | Base for every expected library failure |
 | `InvalidInputError` | `MyLibError`, `ValueError` | The input cannot be processed |
 
-Callers can catch `MyLibError` for all library failures or the built-in base for a specific one. Add a subclass for each new kind of expected failure. Unexpected exceptions are not wrapped.
+Callers can catch `MyLibError` for all library failures or the built-in base for a specific one. Add a subclass for each new kind of expected failure. Unexpected exceptions are not wrapped. The CLI maps a `MyLibError` that is also a `ValueError` to exit code 2 and any other `MyLibError` to exit code 1.
 
 ## Adding functionality
 

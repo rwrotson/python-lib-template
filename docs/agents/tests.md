@@ -8,3 +8,4 @@
 - Run a focused file or `-k` selection before the full suite.
 - Tests never use the network: pytest-socket disables sockets (Unix sockets stay allowed for xdist). Only `tests/integration/` may use it, with `@pytest.mark.enable_socket`.
 - `tests/integration/` is collected only with `--live` (`tests/conftest.py`), so `poe test` and `poe check` skip it. Run it with `uv run poe test-live` (serial, fixed order, reads an optional `.env`).
+- Typer renders help and errors with Rich ANSI styling; compare `Text.from_ansi(result.output).plain` (from `rich.text`) instead of raw output when asserting option names or rendered messages.
