@@ -44,7 +44,7 @@ The `commit-msg` hook checks Conventional Commit format.
 
 ## Publishing
 
-The release workflow publishes version tags to PyPI with [Trusted Publishing](https://docs.pypi.org/trusted-publishers/) only when the repository variable `PUBLISH_TO_PYPI` is `true` (Settings → Secrets and variables → Actions → Variables). Without it, a release builds the package and deploys documentation; install a tagged version from GitHub instead. To publish, on PyPI add a trusted publisher with the repository owner and name, workflow `release.yml`, and environment `pypi`; for a project that does not exist on PyPI yet, add it as a pending publisher. Create the `pypi` environment in the GitHub repository settings, optionally with required reviewers.
+The release workflow publishes version tags to PyPI with [Trusted Publishing](https://docs.pypi.org/trusted-publishers/) only when the repository variable `PUBLISH_TO_PYPI` is `true` (Settings → Secrets and variables → Actions → Variables). Without it, a release builds the package and, on version tags, deploys documentation; install a tagged version from GitHub instead. To publish, on PyPI add a trusted publisher with the repository owner and name, workflow `release.yml`, and environment `pypi`; for a project that does not exist on PyPI yet, add it as a pending publisher. Create the `pypi` environment in the GitHub repository settings, optionally with required reviewers.
 
 The template repository does not set the variable, so its release tags deploy documentation only.
 

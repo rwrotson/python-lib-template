@@ -165,7 +165,7 @@ Dependabot opens weekly grouped PRs for uv dependencies, GitHub Actions, and pre
 |-----|-------------|
 | `build` | checks that the tag matches the project version, builds the sdist and wheel |
 | `publish` | publishes to PyPI with Trusted Publishing (tags only, when the `PUBLISH_TO_PYPI` variable is `true`) |
-| `docs` | builds the docs with ProperDocs and deploys it to GitHub Pages via GitHub Actions |
+| `docs` | builds the docs with ProperDocs and deploys it to GitHub Pages via GitHub Actions (version tags only) |
 
 To publish a project created from this template, set the repository variable `PUBLISH_TO_PYPI=true` and configure a trusted publisher on PyPI with workflow `release.yml` and environment `pypi`. Set Pages Source to **GitHub Actions** and allow `v*` tags in the `github-pages` environment.
 
