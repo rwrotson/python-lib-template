@@ -6,4 +6,5 @@
 - `src/my_lib/cli/settings.py` defines the command's `Settings` (Pydantic `BaseSettings`, prefix `MY_LIB_`, nested delimiter `__`) from library models: `log` is `LogSettings` (`MY_LIB_LOG__*`). Only `load_settings()` reads the environment and `.env`; empty values use defaults.
 - Every setting needs a `Field(description=...)` and a line in `.env.example`; tests in `tests/cli/test_settings.py` enforce both. The docs configuration page is generated from `Settings`; see the [docs guide](../../docs.md).
 - When changing settings or the command, update `.env.example`, README, and the docs.
+- A setting that holds a credential is a `SecretStr` and gets step-by-step instructions in a README "Credentials" section in the same change.
 - `src/my_lib/main.py` is the `my-lib` console script; it reports a missing `cli` extra. `tests/test_main.py` and `tests/test_package.py` cover the message.

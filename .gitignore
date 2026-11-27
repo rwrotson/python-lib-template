@@ -220,3 +220,7 @@ requirements-audit.txt
 
 # Claude Code personal overrides
 /.claude/settings.local.json
+
+# Staged plans (local)
+/docs/plans/*
+!/docs/plans/.gitkeep

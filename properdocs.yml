@@ -7,6 +7,7 @@ edit_uri: edit/main/docs/
 
 exclude_docs: |
   /agents/
+  /plans/
 
 watch:
   - src/my_lib/

@@ -36,6 +36,8 @@ Everything listed in `my_lib.__all__` is public and follows semantic versioning.
 
 `import my_lib` does not read the environment or `.env`, configure logging or structlog, add handlers outside the `my_lib` logger, import optional dependencies, or perform I/O. `tests/test_package.py` checks this in a fresh interpreter.
 
+A heavy layer can be re-exported lazily through a module `__getattr__` with `TYPE_CHECKING` imports, which keeps `import my_lib` light.
+
 ## Logging
 
 Library modules log through `logging.getLogger(__name__)`. The `NullHandler` on `my_lib` keeps records silent until the application configures logging, and records then follow the application's levels and handlers.
