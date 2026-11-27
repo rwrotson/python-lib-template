@@ -22,8 +22,11 @@ Layers are listed from top to bottom. A layer may import any layer below it and 
 - The library never reads the environment or `.env`. Only the CLI does, in `my_lib.cli.settings`; another application composes its own settings from `LogSettings` and passes values to the library.
 - Library code receives settings as arguments, such as `setup_logging(LogSettings(...))`.
 - A new third-party dependency belongs to the lowest layer that needs it, and to that layer's extra.
+- Every package with more than one module has an exhaustive `layers` contract: a new module must be added to it.
+- Packages installed only as transitive dependencies are not imported directly.
+- Code outside the package imports only the public API: scripts in `docs/` use `my_lib` and `my_lib.cli.settings`, scripts in `scripts/` use `my_lib` alone.
 
-import-linter checks the layers, access to the core through `my_lib`, and the third-party packages of each layer with `uv run poe lint-imports`; the contracts are in `pyproject.toml`. Rules that the contracts do not cover are checked in review.
+import-linter checks the layers (exhaustively per package), access to the core through `my_lib`, the third-party packages of each layer, and direct imports of transitive dependencies with `uv run poe lint-imports`; the contracts are in `pyproject.toml`. Rules that the contracts do not cover are checked in review.
 
 ## Public API
 

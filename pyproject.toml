@@ -252,6 +252,27 @@ type = "layers"
 layers = ["my_lib.main", "my_lib.cli", "my_lib.logs", "my_lib.core"]
 
 [[tool.importlinter.contracts]]
+name = "Core modules layers"
+type = "layers"
+containers = ["my_lib.core"]
+layers = ["example", "errors"]
+exhaustive = true
+
+[[tool.importlinter.contracts]]
+name = "Logging modules layers"
+type = "layers"
+containers = ["my_lib.logs"]
+layers = ["setup", "settings"]
+exhaustive = true
+
+[[tool.importlinter.contracts]]
+name = "CLI modules layers"
+type = "layers"
+containers = ["my_lib.cli"]
+layers = ["app", "settings"]
+exhaustive = true
+
+[[tool.importlinter.contracts]]
 name = "Applications use the core only through the my_lib public API"
 type = "forbidden"
 source_modules = ["my_lib.main", "my_lib.cli", "my_lib.logs"]
@@ -270,6 +291,27 @@ name = "Logging setup does not use settings loading or CLI packages"
 type = "forbidden"
 source_modules = ["my_lib.logs"]
 forbidden_modules = ["pydantic_settings", "typer"]
+
+[[tool.importlinter.contracts]]
+name = "Transitive dependencies are not imported directly"
+type = "forbidden"
+source_modules = ["my_lib"]
+forbidden_modules = [
+    "annotated_doc",
+    "annotated_types",
+    "click",
+    "dotenv",
+    "markdown_it",
+    "mdurl",
+    "pydantic_core",
+    "pygments",
+    "rich",
+    "shellingham",
+    "typing_extensions",
+    "typing_inspection",
+]
+# Direct dependencies import them internally.
+allow_indirect_imports = true
 
 
 # POETHEPOET -------------------------------------------------------------------
