@@ -82,6 +82,8 @@ uv run poe docs
 uv run poe audit
 ```
 
+Claude Code hooks in `.claude/` format and autofix the Python file just edited and run `poe quick` at the end of a turn when Python files changed. Personal overrides go in `.claude/settings.local.json`, which is git-ignored.
+
 Or run the tools directly:
 
 ```bash
