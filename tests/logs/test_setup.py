@@ -5,14 +5,18 @@ from pathlib import Path
 
 import pytest
 
-from my_lib.logs import LogSettings, setup_logging
-from my_lib.logs.setup import _AppConsoleHandler, _AppFileHandler
+from my_lib.logs import FILE_ONLY, LogSettings, setup_logging
+from my_lib.logs.setup import _AppConsoleHandler, _AppFileHandler, _AppNullHandler
 
 _EXPECTED_HANDLER_COUNT = 2
 
 
 def _app_handlers(logger: logging.Logger) -> list[logging.Handler]:
-    return [h for h in logger.handlers if isinstance(h, (_AppFileHandler, _AppConsoleHandler))]
+    return [
+        h
+        for h in logger.handlers
+        if isinstance(h, (_AppFileHandler, _AppConsoleHandler, _AppNullHandler))
+    ]
 
 
 def test_setup_logging_without_dir_logs_only_to_console(
@@ -198,3 +202,44 @@ def test_library_records_reach_configured_handlers(
     event = json.loads(capsys.readouterr().err)
     assert event["event"] == "from library"
     assert event["logger"] == "my_lib.core.example"
+
+
+def test_setup_logging_without_console_prints_nothing(
+    clean_root_logger: logging.Logger, capsys: pytest.CaptureFixture[str]
+) -> None:
+    setup_logging(LogSettings(), console=False)
+
+    clean_root_logger.warning("quiet")
+
+    assert [type(h) for h in _app_handlers(clean_root_logger)] == [_AppNullHandler]
+    assert capsys.readouterr().err == ""
+
+
+def test_setup_logging_replaces_null_handler_on_reconfiguration(
+    clean_root_logger: logging.Logger,
+) -> None:
+    setup_logging(LogSettings(), console=False)
+    setup_logging(LogSettings(), console=False)
+    assert [type(h) for h in _app_handlers(clean_root_logger)] == [_AppNullHandler]
+
+    setup_logging(LogSettings())
+
+    assert [type(h) for h in _app_handlers(clean_root_logger)] == [_AppConsoleHandler]
+
+
+def test_file_only_records_skip_the_console(
+    tmp_path: Path, clean_root_logger: logging.Logger, capsys: pytest.CaptureFixture[str]
+) -> None:
+    setup_logging(LogSettings(dir=tmp_path))
+
+    clean_root_logger.error("hidden", extra=FILE_ONLY)
+    clean_root_logger.error("shown")
+
+    for handler in clean_root_logger.handlers:
+        handler.flush()
+    err = capsys.readouterr().err
+    assert "hidden" not in err
+    assert "shown" in err
+    log_text = (tmp_path / "my-lib.log").read_text()
+    assert "hidden" in log_text
+    assert "shown" in log_text

@@ -18,6 +18,7 @@ The wheel includes `py.typed`, so type checkers use the package's inline annotat
 
 - Library modules use stdlib loggers; their records and structlog events share the same handlers.
 - Console logs use colourised `ConsoleRenderer` output or JSON with `LogSettings(format="json")` (`MY_LIB_LOG__FORMAT=json` for the command).
+- `setup_logging(console=False)` disables console output; `extra=FILE_ONLY` keeps a single record out of the console.
 - File logs use JSON and are written only when `LogSettings.dir` (`MY_LIB_LOG__DIR`) is set.
 - Timestamps are ISO 8601 in UTC.
 - `structlog.contextvars.bind_contextvars()` adds fields to subsequent logs in the current context.

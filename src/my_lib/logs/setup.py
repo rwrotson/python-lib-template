@@ -1,11 +1,15 @@
 import logging
 import logging.handlers
 import sys
+from types import MappingProxyType
 from typing import TextIO
 
 import structlog
 
 from my_lib.logs.settings import LogSettings
+
+# Pass as ``extra`` to keep a record out of the console when the application reports it itself.
+FILE_ONLY = MappingProxyType({"console": False})
 
 
 class _AppFileHandler(logging.handlers.RotatingFileHandler):
@@ -16,8 +20,17 @@ class _AppConsoleHandler(logging.StreamHandler[TextIO]):
     """Mark console handlers for replacement when logging is reconfigured."""
 
 
+class _AppNullHandler(logging.NullHandler):
+    """Keep logging.lastResort from printing to stderr when the console is disabled."""
+
+
+def _console_record(record: logging.LogRecord) -> bool:
+    return getattr(record, "console", True) is not False
+
+
 def _prepare_handlers(
     config: LogSettings,
+    console: bool,
     console_formatter: logging.Formatter,
     json_processors: list[structlog.types.Processor],
     shared_processors: list[structlog.types.Processor],
@@ -25,10 +38,14 @@ def _prepare_handlers(
     """Create all handlers before touching the root logger, closing them if one fails."""
     handlers: list[logging.Handler] = []
     try:
-        sh = _AppConsoleHandler(sys.stderr)
-        sh.setLevel(config.console_level)
-        sh.setFormatter(console_formatter)
-        handlers.append(sh)
+        if console:
+            sh = _AppConsoleHandler(sys.stderr)
+            sh.setLevel(config.console_level)
+            sh.setFormatter(console_formatter)
+            sh.addFilter(_console_record)
+            handlers.append(sh)
+        else:
+            handlers.append(_AppNullHandler())
 
         if config.dir is not None:
             logs_dir_path = config.dir.resolve()
@@ -52,7 +69,7 @@ def _prepare_handlers(
     return handlers
 
 
-def setup_logging(config: LogSettings | None = None) -> None:
+def setup_logging(config: LogSettings | None = None, *, console: bool = True) -> None:
     """Configure structlog and stdlib handlers for an application that uses the library."""
     if config is None:
         config = LogSettings()
@@ -81,11 +98,13 @@ def setup_logging(config: LogSettings | None = None) -> None:
         foreign_pre_chain=shared_processors,
     )
 
-    handlers = _prepare_handlers(config, console_formatter, json_processors, shared_processors)
+    handlers = _prepare_handlers(
+        config, console, console_formatter, json_processors, shared_processors
+    )
 
     root_logger = logging.getLogger()
     for handler in root_logger.handlers[:]:
-        if isinstance(handler, (_AppFileHandler, _AppConsoleHandler)):
+        if isinstance(handler, (_AppFileHandler, _AppConsoleHandler, _AppNullHandler)):
             root_logger.removeHandler(handler)
             handler.close()
 

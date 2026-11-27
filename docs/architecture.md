@@ -45,8 +45,12 @@ Library modules log through `logging.getLogger(__name__)`. The `NullHandler` on 
 1. Without arguments it uses the `LogSettings` defaults; it never reads the environment.
 2. It creates all handlers first; if one fails, the previous configuration stays in place.
 3. It replaces the handlers it created before and keeps all others.
-4. It adds a stderr handler (console or JSON) and, when a log directory is set, a rotating JSON file handler.
+4. It adds a stderr handler (console or JSON) and, when a log directory is set, a rotating JSON file handler. With `console=False` it adds a no-op handler instead of the stderr handler, so `logging.lastResort` does not print either.
 5. It configures structlog to render through the same stdlib handlers, so structlog and stdlib records share one format.
+
+A record logged with `extra=FILE_ONLY` skips the console handler and still reaches the file handler; an application uses it for errors it prints itself.
+
+Library modules do not log the errors they raise; the caller decides how to report them.
 
 The `my-lib` command calls it with `LogSettings` loaded from `MY_LIB_LOG__*`.
 
