@@ -50,7 +50,10 @@ def root(
     _version: Annotated[
         bool,
         typer.Option(
-            "--version", callback=_show_version, is_eager=True, help="Show the version and exit."
+            "--version",
+            callback=_show_version,
+            is_eager=True,
+            help="Show the version and exit.",
         ),
     ] = False,
 ) -> None:

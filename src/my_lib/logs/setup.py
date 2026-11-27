@@ -58,7 +58,8 @@ def _prepare_handlers(
             fh.setLevel(config.file_level)
             fh.setFormatter(
                 structlog.stdlib.ProcessorFormatter(
-                    processors=json_processors, foreign_pre_chain=shared_processors
+                    processors=json_processors,
+                    foreign_pre_chain=shared_processors,
                 )
             )
             handlers.append(fh)
@@ -99,7 +100,11 @@ def setup_logging(config: LogSettings | None = None, *, console: bool = True) ->
     )
 
     handlers = _prepare_handlers(
-        config, console, console_formatter, json_processors, shared_processors
+        config,
+        console,
+        console_formatter,
+        json_processors,
+        shared_processors,
     )
 
     root_logger = logging.getLogger()

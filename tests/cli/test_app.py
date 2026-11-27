@@ -67,7 +67,8 @@ def test_unexpected_errors_are_not_mapped(monkeypatch: pytest.MonkeyPatch) -> No
 
 
 def test_error_goes_to_log_file_not_console(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
 ) -> None:
     monkeypatch.setenv("MY_LIB_LOG__DIR", str(tmp_path))
 
@@ -79,7 +80,8 @@ def test_error_goes_to_log_file_not_console(
 
 
 def test_settings_configure_logging(
-    monkeypatch: pytest.MonkeyPatch, clean_root_logger: logging.Logger
+    monkeypatch: pytest.MonkeyPatch,
+    clean_root_logger: logging.Logger,
 ) -> None:
     monkeypatch.setenv("MY_LIB_LOG__LEVEL", "ERROR")
 
@@ -89,7 +91,8 @@ def test_settings_configure_logging(
 
 
 def test_verbose_enables_debug_logging(
-    monkeypatch: pytest.MonkeyPatch, clean_root_logger: logging.Logger
+    monkeypatch: pytest.MonkeyPatch,
+    clean_root_logger: logging.Logger,
 ) -> None:
     monkeypatch.setenv("MY_LIB_LOG__LEVEL", "ERROR")
 
