@@ -7,6 +7,16 @@ import pytest
 import structlog
 
 
+def pytest_addoption(parser: pytest.Parser) -> None:
+    parser.addoption("--live", action="store_true", help="collect tests/integration")
+
+
+def pytest_ignore_collect(collection_path: Path, config: pytest.Config) -> bool | None:
+    if collection_path.name == "integration" and collection_path.parent.name == "tests":
+        return not config.getoption("--live")
+    return None
+
+
 @pytest.fixture(autouse=True)
 def isolated_environment(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Keep the developer's MY_LIB_* variables and .env file out of every test."""

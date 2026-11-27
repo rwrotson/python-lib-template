@@ -64,6 +64,7 @@ dev = [
     "pytest>=9.1.1",
     "pytest-cov>=7.1.0",
     "pytest-randomly>=5.0.0",
+    "pytest-socket>=0.8.1",
     "pytest-timeout>=2.4.0",
     "pytest-xdist>=3.8.0",
     "ruff>=0.16.10",
@@ -102,7 +103,8 @@ module-root = "src"
 # PYTEST -----------------------------------------------------------------------
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-ra --tb=short --strict-markers --strict-config -n auto"
+# xdist workers talk to the controller over Unix sockets, so those stay allowed.
+addopts = "-ra --tb=short --strict-markers --strict-config -n auto --disable-socket --allow-unix-socket"
 xfail_strict = true
 filterwarnings = ["error"]
 timeout = 30
@@ -279,8 +281,13 @@ lint-imports = "lint-imports"
 typecheck = "mypy"
 test = "pytest --cov"
 test-fast = "pytest"
+quick = ["lint", "lint-imports", "typecheck"]
 docs = "properdocs serve"
 check = ["fmt-check", "lint", "lint-imports", "typecheck", "test"]
+
+[tool.poe.tasks.test-live]
+cmd = "pytest tests/integration --live -n 0 -p no:randomly"
+envfile = { optional = [".env"] }
 
 [tool.poe.tasks.audit]
 shell = """

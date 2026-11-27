@@ -15,7 +15,9 @@ This project uses [uv](https://docs.astral.sh/uv/) for package management; the f
 ```bash
 uv sync --all-groups --locked
 uv run poe check        # fmt-check, lint, lint-imports, typecheck, test (95% branch coverage)
+uv run poe quick        # lint, lint-imports, typecheck (no formatting check or tests)
 uv run poe test-fast    # pytest without coverage, parallel, random order
+uv run poe test-live    # tests/integration against real services; needs --live, reads .env
 uv run poe fmt          # ruff format . (rewrites files)
 uv run poe audit        # pip-audit over locked dependencies
 uv run --group docs properdocs build --strict
@@ -53,6 +55,7 @@ core  src/my_lib/core/    library functionality and the MyLibError hierarchy (ba
 - Library code never reads the environment and takes settings objects as arguments; only `load_settings()` in the CLI reads the environment and `.env`.
 - Expected failures raise a `MyLibError` subclass.
 - Treat everything exported from `my_lib/__init__.py` as public API. Mark removals and incompatible changes with `!` or a `BREAKING CHANGE:` footer so Commitizen bumps the version correctly.
+- Tests never use the network, except `tests/integration/` under `--live`.
 - Keep the user's `.env` and secrets untracked.
 
 ## Code Style
