@@ -8,5 +8,6 @@
 - Add a new third-party dependency to the lowest layer that needs it and to that layer's extra (none for `core`), and update the import-linter contract that lists the layer's allowed packages.
 - Security floors for transitive dependencies go in `[tool.uv] constraint-dependencies`.
 - Use the project environment for tools. Do not install packages manually into `.venv`.
+- `[tool.mypy] files` lists only existing directories (mypy fails on a missing path); when adding `scripts/`, add it there in the same change.
 - The uv build backend loads `my_lib` from `src/` (`[tool.uv.build-backend]`, `module-name = "my_lib"`, `module-root = "src"`). `src/my_lib/py.typed` marks the package as typed (PEP 561); keep it in the wheel. See the [build backend notes](../notes.md#build-backend).
 - Versioning: `uv run cz bump` bumps the version, updates `CHANGELOG.md`, and tags; `uv run cz changelog` updates the changelog only. Build with `uv build`.

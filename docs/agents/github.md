@@ -5,6 +5,7 @@
     - **`test`** — `poe test` (95% branch coverage) on Ubuntu and macOS.
     - **`lowest`** — installs the lowest allowed direct dependencies with the `cli` extra (`--resolution lowest-direct`) and runs pytest; it checks the declared lower bounds, which the lock does not.
     - **`build`** — `uv build` with a wheel smoke test (base install without extras, then the `cli` extra), `properdocs build --strict`, `poe audit`, trivy filesystem scan (CRITICAL/HIGH).
+- When tests need an external program, install it in the `test` job on both systems (`apt-get` on Linux, `brew list <tool> || brew install <tool>` on macOS) and in the `lowest` job.
 - `.github/workflows/release.yml` triggers on version tags (`v*`) and manual `workflow_dispatch`. It runs CI first, then:
     - **`build`** — on tags, checks that the tag matches `uv version --short`; then `uv build` and uploads `dist/` as an artifact.
     - **`publish`** — tags only, and only when the repository variable `PUBLISH_TO_PYPI` is `true`; publishes `dist/` to **PyPI** with Trusted Publishing (OIDC, the `pypi` environment, `id-token: write`). No API token is stored. Without the variable, a release builds the package and, on tags, deploys docs; the template repository does not set it.
