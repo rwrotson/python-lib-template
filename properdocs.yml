@@ -5,6 +5,9 @@ repo_url: https://github.com/rwrotson/python-lib-template
 repo_name: rwrotson/python-lib-template
 edit_uri: edit/main/docs/
 
+exclude_docs: |
+  /agents/
+
 watch:
   - src/my_lib/
   - .env.example

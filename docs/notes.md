@@ -54,7 +54,8 @@ Choose three names before editing: a distribution name (for example, `my-package
 package (`my_package`), and an environment prefix (`MY_PACKAGE_`). Check that the distribution
 name is free on PyPI.
 
-1. Rename `src/my_lib/` to `src/my_package/`. Replace every `my_lib` throughout `src/`,
+1. Rename `src/my_lib/` to `src/my_package/` and `docs/agents/src/my_lib/` to
+   `docs/agents/src/my_package/`. Replace every `my_lib` throughout `src/`,
    `tests/`, and `docs/`: imports, logger names in tests, and paths and text in
    `docs/gen_ref_pages.py` and `docs/gen_config_page.py`. Update `module-name` under
    `[tool.uv.build-backend]`, `[tool.coverage.run].source`,
@@ -70,7 +71,7 @@ name is free on PyPI.
    using `MY_LIB_` variables.
 4. Update `properdocs.yml` (`site_name`, `site_url`, repository links, `edit_uri` if the default
    branch is not `main`, and the source watch path). Update names and links in README, docs,
-   `AGENTS.md`, the copyright holder in `LICENSE`, and the PyPI URL in
+   `AGENTS.md`, `docs/agents/`, the copyright holder in `LICENSE`, and the PyPI URL in
    `.github/workflows/release.yml`.
 5. Configure GitHub Pages and, to publish to PyPI, the trusted publisher and the `PUBLISH_TO_PYPI`
    variable as described above.
